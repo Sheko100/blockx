@@ -1,9 +1,9 @@
 #!/bin/bash
 
-cd ../.. && dfx generate encrypted_notes || exit 1
+cd ../.. && dfx generate blockx || exit 1
 
-rm -r frontend/src/declarations/encrypted_notes > /dev/null 2>&1 || true
+rm -r frontend/src/declarations/blockx > /dev/null 2>&1 || true
 
-mkdir -p frontend/src/declarations/encrypted_notes
-mv src/declarations/encrypted_notes frontend/src/declarations
+mkdir -p frontend/src/declarations/blockx
+mv src/declarations/blockx frontend/src/declarations
 rmdir -p src/declarations > /dev/null 2>&1 || true
