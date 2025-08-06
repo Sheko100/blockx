@@ -1,10 +1,11 @@
-module.exports = {
+/** @type {import('tailwindcss').Config} */
+export default {
   content: [
-    './public/index.html',
-    './src/**/*.svelte',
+    './src/**/*.{js,jsx,ts,tsx}',
   ],
   theme: {
     extend: {},
   },
-  plugins: [require('daisyui'), require('@tailwindcss/line-clamp')],
-};
+  plugins: [],
+}
+
