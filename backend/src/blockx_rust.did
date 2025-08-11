@@ -1,0 +1,34 @@
+type AssetCategory = variant {
+  IntellectualProperty;
+  RealEstate;
+  Vehicle;
+  ValuableItem;
+  DigitalAsset;
+  Equipment;
+  ContractualRights;
+};
+type AssetDetails = record {
+  extra_metadata : opt text;
+  name : text;
+  description : text;
+  jurisdiction : opt text;
+  serial_or_id : opt text;
+};
+type AssetType = variant { Physical; NonPhysical };
+type AssetUserInput = record {
+  asset_type : AssetType;
+  details : AssetDetails;
+  category : AssetCategory;
+  ownership_proof : Proof;
+};
+type Proof = record {
+  document_url : opt text;
+  witness : opt text;
+  acquisition_date : opt nat64;
+};
+type User = record { username : text; password : text; email : text };
+service : {
+  add_user : (text, text, text) -> (nat);
+  get_user : (nat) -> (User) query;
+  register_asset : (AssetUserInput) -> (text);
+}
