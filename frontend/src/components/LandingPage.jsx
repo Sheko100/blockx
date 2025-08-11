@@ -1,9 +1,13 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 // import { TablerIcon, IconFileUpload, IconShieldLock, IconCertificate, IconArrowRight } from '@tabler/icons-react';
 import { IconFileUpload, IconTopologyStarRing3, IconShieldLock, IconCertificate, IconArrowRight } from '@tabler/icons-react';
 import { motion, AnimatePresence } from 'framer-motion'; 
+import { useNavigate } from 'react-router-dom';
+
 const LandingPage = ({ connectWallet }) => {
   const [currentFeature, setCurrentFeature] = useState(0);
+  const navigate = useNavigate();
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -88,21 +92,35 @@ const LandingPage = ({ connectWallet }) => {
             <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">
               License Your <span className="text-blue-500">Digital Properties</span> Securely
             </h1>
+
+            
+            <button 
+              onClick={() => navigate('/register')}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg"
+            >
+              Register New Property
+            </button>
             <p className="text-xl text-gray-600 mb-8">
-              Register, verify, and manage your digital assets with immutable Web3 technology.
+              Register, verify, and manage
+              your digital assets with immutable
+              Web3 technology.
             </p>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-              <motion.button 
+
+
+              {/* <motion.button 
                 className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium relative overflow-hidden group"
                 whileHover={{ y: -3 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <span className="relative z-10 flex items-center">
                   Register New Property 
+                  
                   <IconArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </span>
                 <span className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              </motion.button>
+              </motion.button> */}
+
               
               <motion.button 
                 className="border-2 border-blue-500 text-blue-500 hover:bg-blue-50 px-6 py-3 rounded-lg font-medium group"

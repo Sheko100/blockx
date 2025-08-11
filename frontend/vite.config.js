@@ -11,6 +11,8 @@ export default defineConfig({
     environment("all", { prefix: "CANISTER_" }),
     environment("all", { prefix: "DFX_" }),
   ],
+
+  
   optimizeDeps: {
     esbuildOptions: {
       define: {
@@ -22,3 +24,4 @@ export default defineConfig({
     dedupe: ['@dfinity/agent'],
   },
 })
+

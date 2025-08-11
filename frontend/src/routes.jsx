@@ -6,13 +6,17 @@ import DashboardLayout from './components/dashboard/DashboardLayout'
 import RegisterProperty from './components/dashboard/RegisterProperty'
 import VerifyProperty from './components/dashboard/VerifyProperty'
 import NotFound from './pages/NotFound'
+import RegistrationPage from './components/RegistrationPage';
+
+
+
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
-      
+      <Route path="/register" element={<RegistrationPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route path="register" element={<RegisterProperty />} />

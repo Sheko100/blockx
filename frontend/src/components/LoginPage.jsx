@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 //import { TablerIcon, IconWallet, IconPlug, IconShieldLock, IconBrandInternetComputer, IconX, IconArrowRight } from '@tabler/icons-react';
-import { IconWallet, IconPlug, IconShieldLock, IconX, IconArrowRight } from '@tabler/icons-react';
+import { IconWallet, IconPlug, IconShieldLock, IconCloudNetwork, IconX, IconArrowRight, IconBrandDocker, IconCloud } from '@tabler/icons-react';
+import { motion } from "framer-motion"; 
 
 const LoginPage = ({ onLoginSuccess, redirectAction }) => {
   const [activeTab, setActiveTab] = useState('wallet');
@@ -13,7 +14,7 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
     {
       id: 'internet-identity',
       name: 'Internet Identity',
-      icon: <IconBrandInternetComputer className="w-5 h-5" />,
+      icon: <IconCloudNetwork className="w-5 h-5" />,
       color: 'from-blue-500 to-blue-600'
     },
     {
@@ -23,8 +24,8 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
       color: 'from-purple-500 to-purple-600'
     },
     {
-      id: 'stoic',
-      name: 'Stoic Wallet',
+      id: 'Binance',
+      name: 'Binance Wallet',
       icon: <IconWallet className="w-5 h-5" />,
       color: 'from-green-500 to-green-600'
     }
