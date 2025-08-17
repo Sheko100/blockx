@@ -1,6 +1,7 @@
 # Makefile for ICP project with Rust backend + React frontend
 
 BACKEND_CANISTER := blockx_backend
+FRONTEND_CANISTER := blockx_frontend
 PACKAGE_NAME := blockx
 WASM_PATH := target/wasm32-unknown-unknown/release/$(PACKAGE_NAME).wasm
 DID_PATH := backend/src/blockx_rust.did
@@ -17,11 +18,17 @@ stop-dev:
 deploy-all:
 	dfx deploy || dfx stop
 
+deploy-front:
+	dfx deploy ${FRONTEND_CANISTER}
+
 candid:
 	candid-extractor ${WASM_PATH} > ${DID_PATH}
 
-declarations:
-	rm -rf declarations && dfx generate ${BACKEND_CANISTER}
+declarations: delete-declarations
+	dfx generate ${BACKEND_CANISTER}
+
+delete-declarations:
+	rm -rf declarations
 
 clean:
 	cargo clean -r
