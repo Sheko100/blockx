@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-//import { TablerIcon, IconWallet, IconPlug, IconShieldLock, IconBrandInternetComputer, IconX, IconArrowRight } from '@tabler/icons-react';
 import { IconWallet, IconPlug, IconShieldLock, IconCloudNetwork, IconX, IconArrowRight, IconBrandDocker, IconCloud } from '@tabler/icons-react';
 import { motion } from "framer-motion"; 
 
@@ -57,13 +56,38 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col"
-    >
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-gray-900 to-orange-900 text-white">
+      {/* Floating Particles Background */}
+      <div className="fixed inset-0 overflow-hidden z-0">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{
+              x: Math.random() * 100,
+              y: Math.random() * 100,
+              opacity: 0
+            }}
+            animate={{
+              x: [null, Math.random() * 100],
+              y: [null, Math.random() * 100],
+              opacity: [0, 0.3, 0]
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              repeatType: "reverse",
+              delay: Math.random() * 5
+            }}
+            className="absolute rounded-full"
+            style={{
+              width: Math.random() * 10 + 2,
+              height: Math.random() * 10 + 2,
+              background: i % 2 === 0 ? 'rgba(59, 130, 246, 0.5)' : 'rgba(249, 115, 22, 0.5)'
+            }}
+          />
+        ))}
+      </div>
+
       {/* Animated Redirect Banner */}
       <AnimatePresence>
         {showRedirectMessage && (
@@ -72,7 +96,7 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
             transition={{ type: 'spring', damping: 25 }}
-            className="bg-blue-500 text-white py-3 px-4 shadow-md"
+            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-4 shadow-md relative z-50"
           >
             <div className="container mx-auto flex justify-between items-center">
               <div className="flex items-center">
@@ -85,7 +109,7 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
               </div>
               <button 
                 onClick={() => setShowRedirectMessage(false)}
-                className="p-1 rounded-full hover:bg-blue-600 transition-colors"
+                className="p-1 rounded-full hover:bg-blue-800 transition-colors"
               >
                 <IconX size={18} />
               </button>
@@ -94,22 +118,27 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
         )}
       </AnimatePresence>
 
-      {/* Header */}
+      {/* Glass Morphic Header */}
       <motion.header 
-        initial={{ y: -20 }}
-        animate={{ y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-white shadow-sm py-4"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white/5 backdrop-blur-lg shadow-lg sticky top-0 z-50 border-b border-white/10"
       >
-        <div className="container mx-auto px-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <motion.div 
             whileHover={{ scale: 1.05 }}
+            onClick={() => navigate('/')}
             className="flex items-center cursor-pointer"
           >
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-orange-500 rounded-lg flex items-center justify-center text-white font-bold text-xl">
+            <motion.div 
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+              className="w-10 h-10 bg-gradient-to-r from-blue-500 to-orange-500 rounded-lg flex items-center justify-center text-white font-bold text-xl"
+            >
               P
-            </div>
-            <span className="ml-3 text-xl font-bold text-gray-800">PropLicense</span>
+            </motion.div>
+            <span className="ml-3 text-xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent">PropLicense</span>
           </motion.div>
         </div>
       </motion.header>
@@ -119,11 +148,11 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="flex-grow flex items-center justify-center py-12 px-4"
+        className="flex-grow flex items-center justify-center py-12 px-4 relative z-10"
       >
         <motion.div 
           whileHover={{ y: -5 }}
-          className="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100 relative"
+          className="w-full max-w-md bg-white/5 backdrop-blur-md rounded-xl shadow-2xl overflow-hidden border border-white/10 relative"
         >
           {/* Decorative elements */}
           <motion.div 
@@ -146,28 +175,30 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
               transition={{ delay: 0.4 }}
               className="text-center mb-8"
             >
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent mb-2">
                 {redirectAction === 'register' 
                   ? 'Register Your Digital Property' 
                   : 'Verify Property Ownership'}
               </h2>
-              <p className="text-gray-600">Authenticate to continue</p>
+              <p className="text-gray-300">Authenticate to continue</p>
             </motion.div>
 
             {/* Tabs with animated underline */}
-            <motion.div className="flex border-b border-gray-200 mb-6">
+            <motion.div className="flex border-b border-white/20 mb-6">
               {['wallet', 'email'].map((tab) => (
                 <motion.button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-2 font-medium text-sm relative ${activeTab === tab ? 'text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
+                  className={`flex-1 py-2 font-medium text-sm relative ${
+                    activeTab === tab ? 'text-white' : 'text-gray-400 hover:text-white'
+                  }`}
                   whileHover={{ scale: 1.03 }}
                 >
                   {tab === 'wallet' ? 'Web3 Wallets' : 'Email'}
                   {activeTab === tab && (
                     <motion.div 
                       layoutId="authTabUnderline"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-orange-400"
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
@@ -188,7 +219,7 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
                     key={provider.id}
                     onClick={() => handleConnect(provider.id)}
                     disabled={isConnecting}
-                    className="w-full flex items-center p-4 border border-gray-200 rounded-lg hover:shadow-md transition-all relative overflow-hidden group"
+                    className="w-full flex items-center p-4 border border-white/20 rounded-lg hover:shadow-lg transition-all relative overflow-hidden group backdrop-blur-sm"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 + index * 0.1 }}
@@ -198,10 +229,13 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
                       {provider.icon}
                     </div>
                     <div className="text-left z-10">
-                      <div className="font-medium text-gray-800">{provider.name}</div>
-                      <div className="text-xs text-gray-500">Secure decentralized login</div>
+                      <div className="font-medium text-white">{provider.name}</div>
+                      <div className="text-xs text-gray-400">Secure decentralized login</div>
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-300 z-0"></div>
+                    <motion.div 
+                      className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-300 z-0"
+                      whileHover={{ opacity: 0.1 }}
+                    />
                   </motion.button>
                 ))}
 
@@ -209,11 +243,11 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.8 }}
-                  className="pt-2 text-center text-sm text-gray-500"
+                  className="pt-2 text-center text-sm text-gray-400"
                 >
                   New to Web3? <button 
                     onClick={() => setActiveTab('email')}
-                    className="text-blue-500 hover:underline font-medium"
+                    className="text-blue-400 hover:underline font-medium"
                   >
                     Use email instead
                   </button>
@@ -235,12 +269,12 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
                   transition={{ delay: 0.6 }}
                   className="mb-4"
                 >
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                  <label className="block text-sm font-medium text-white mb-1">Email Address</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-white backdrop-blur-sm"
                     placeholder="your@email.com"
                     required
                   />
@@ -262,18 +296,21 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
                     Send Magic Link
                     <IconArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                  <motion.span 
+                    className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-400 opacity-0"
+                    whileHover={{ opacity: 1 }}
+                  />
                 </motion.button>
                 
                 <motion.p 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.8 }}
-                  className="mt-4 text-center text-sm text-gray-500"
+                  className="mt-4 text-center text-sm text-gray-400"
                 >
                   Prefer Web3? <button 
                     onClick={() => setActiveTab('wallet')}
-                    className="text-blue-500 hover:underline font-medium"
+                    className="text-blue-400 hover:underline font-medium"
                   >
                     Connect wallet instead
                   </button>
@@ -288,14 +325,14 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mt-6 p-4 bg-blue-50 rounded-lg flex items-center"
+                  className="mt-6 p-4 bg-blue-500/20 rounded-lg flex items-center backdrop-blur-sm"
                 >
                   <motion.div 
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                    className="rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent mr-3"
+                    className="rounded-full h-5 w-5 border-2 border-blue-400 border-t-transparent mr-3"
                   />
-                  <span className="text-blue-500">
+                  <span className="text-blue-400">
                     {activeTab === 'email' 
                       ? 'Sending magic link...' 
                       : 'Connecting wallet...'}
@@ -312,13 +349,13 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="bg-white py-6 border-t border-gray-200 text-center text-sm text-gray-500"
+        className="bg-white/5 backdrop-blur-md py-6 border-t border-white/10 text-center text-sm text-gray-400 relative z-10"
       >
         <div className="container mx-auto px-4">
-          By continuing, you agree to our <a href="#" className="text-blue-500 hover:underline">Terms</a> and <a href="#" className="text-blue-500 hover:underline">Privacy Policy</a>
+          By continuing, you agree to our <a href="#" className="text-blue-400 hover:underline">Terms</a> and <a href="#" className="text-blue-400 hover:underline">Privacy Policy</a>
         </div>
       </motion.footer>
-    </motion.div>
+    </div>
   );
 };
 

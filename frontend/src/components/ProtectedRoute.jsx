@@ -1,6 +1,7 @@
 import { useContext } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from './context/AuthContext';
+import DashboardPage from './DashboardPage';
 
 // ProtectedRoute component to protect routes that require authentication
 // It checks if the user is authenticated and redirects to login if not
