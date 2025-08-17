@@ -5,14 +5,14 @@ type AssetCategory = variant {
   ValuableItem;
   DigitalAsset;
   Equipment;
-  ContractualRights;
 };
 type AssetDetails = record {
-  extra_metadata : opt text;
+  files : vec blob;
+  manufacturer : opt text;
   name : text;
+  "type" : opt text;
   description : text;
-  jurisdiction : opt text;
-  serial_or_id : opt text;
+  address : opt text;
 };
 type AssetType = variant { Physical; NonPhysical };
 type AssetUserInput = record {
@@ -22,9 +22,12 @@ type AssetUserInput = record {
   ownership_proof : Proof;
 };
 type Proof = record {
-  document_url : opt text;
-  witness : opt text;
-  acquisition_date : opt nat64;
+  deed_document : opt blob;
+  deed_reference_number : opt text;
+  publication_links : opt text;
+  license_plate : opt text;
+  serial_number : opt text;
+  registeration_number : opt text;
 };
 type User = record { username : text; password : text; email : text };
 service : {

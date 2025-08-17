@@ -2,7 +2,7 @@ use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemor
 use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap, StableCell};
 use std::cell::RefCell;
 use crate::user::User;
-use crate::asset::Asset;
+use crate::asset::{Asset, AssetCategory, AssetIds};
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -40,6 +40,18 @@ thread_local! {
             0,
         ).expect("Failed to initialize ASSETS_COUNT")
     );
+
+    static CATEGORY_COUNTS: RefCell<StableBTreeMap<AssetCategory, u128, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(4)))
+        )
+    );
+
+    pub static CATEGORY_TO_IDS: RefCell<StableBTreeMap<AssetCategory, AssetIds, Memory>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(5)))
+        )
+    );
 }
 
 // Stores a new asset structure in the stable memmory
@@ -48,12 +60,32 @@ pub fn store_asset(value: Asset) -> Option<u128> {
 
     ASSETS.with(|assets| {
         ASSETS_COUNT.with(|cell| {
-            let mut count_cell = cell.borrow_mut();
-            let curr_count = *count_cell.get();
-            let new_count = curr_count + 1;
-            count_cell.set(new_count).expect("failed to update assets count");
-            assets.borrow_mut().insert(curr_count, value);
-            assets_count = new_count;
+            CATEGORY_COUNTS.with(|categ_counts| {
+                CATEGORY_TO_IDS.with(|cat_to_ids| {
+                    // get the current count
+                    let mut count_cell = cell.borrow_mut();
+                    let curr_count = *count_cell.get();
+                    let new_count = curr_count + 1;
+
+                    // update all assets count
+                    count_cell.set(new_count).expect("failed to update assets count");
+
+                    // update categories counts
+                    let mut categ_map = categ_counts.borrow_mut();
+                    let cat_count = categ_map.get(&value.category).unwrap_or(0);
+                    categ_map.insert(value.category.clone(), cat_count + 1);
+
+                    // update CATEGORY_TO_IDS
+                    let mut cat_map = cat_to_ids.borrow_mut();
+                    let mut ids = cat_map.get(&value.category).unwrap_or_else(|| AssetIds(Vec::new()));
+                    ids.0.push(curr_count);
+                    cat_map.insert(value.category.clone(), ids);
+
+                    // add the new asset
+                    assets.borrow_mut().insert(curr_count, value);
+                    assets_count = new_count;
+                });
+            });
         });
     });
 
@@ -66,9 +98,39 @@ pub fn retrieve_asset(key: u128) -> Option<Asset> {
     asset
 }
 
+pub fn asset_ids_by_category(category: &AssetCategory) -> Vec<u128> {
+    CATEGORY_TO_IDS.with(|map| {
+        map.borrow()
+            .get(category)
+            .map(|ids| ids.0) // unwrap IdList into Vec<u128>
+            .unwrap_or_else(|| Vec::new())
+    })
+}
+
+
+
+
 // retrieves the users count
-pub fn retrieve_assets_count() -> Option<u128> {
-    let count: u128 = ASSETS_COUNT.with(|p| *p.borrow().get());
+pub fn retrieve_assets_count(category: Option<AssetCategory>) -> Option<u128> {
+    let count = match category {
+
+        Some(cat) => CATEGORY_COUNTS.with(|cat_counts| {
+            cat_counts.borrow().get(&cat).unwrap_or(0)
+        }),
+        None => ASSETS_COUNT.with(|p| *p.borrow().get()),
+
+        /*Some(cat) => {
+            // Count only assets matching the category
+            ASSETS.with(|assets| {
+                let assets = assets.borrow();
+                assets.iter().filter(|(_, asset)| asset.category == cat).count() as u128
+            })
+        }
+        None => {
+            // Return total count from ASSETS_COUNT (faster than iterating all assets)
+            ASSETS_COUNT.with(|p| *p.borrow().get())
+        }*/
+    };
 
     Some(count)
 }

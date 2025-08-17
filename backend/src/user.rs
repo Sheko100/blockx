@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use ic_stable_structures::{Storable, storable::Bound};
 use candid::{CandidType, Deserialize, Encode, Decode};
 use crate::store::{store_user, retrieve_user, retrieve_users_count};
-use crate::hash_text;
+use crate::hash::hash_text;
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct User {
