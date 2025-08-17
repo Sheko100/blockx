@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { processFile } from '../utils';
+import { registerAsset } from '../controller/controller.js';
 import { 
   IconUpload, 
   IconHome, 
@@ -30,22 +32,39 @@ const RegistrationPage = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const [isHoveringCert, setIsHoveringCert] = useState(false);
 
+  const [fileNames, setFileNames] = useState([]);
+  const [maxFiles, setMaxFiles] = useState(5);
+  const [minFiles, setMinFiles] = useState(2);
+
   // Form state matching Rust structs
   const [formData, setFormData] = useState({
     asset_type: null,
     category: null,
     details: {
+      // images only allowed for physical assets, and all files allowed for digital assets
+      files: [],
       name: '',
       description: '',
-      serial_or_id: '',
-      jurisdiction: '',
-      extra_metadata: ''
+      // for real estate
+      address: [],
+      // for vehicles like car, motorcycle, etc...
+      type: [],
+      // for equipmenets
+      manufacturer: [],
     },
     ownership_proof: {
-      document_url: '',
-      witness: '',
-      acquisition_date: ''
-    }
+      // for real estate
+      deed_document: [],
+      deed_reference_number: [],
+      // for vehicles and intellectual properties
+      registeration_number: [],
+      // for vehicles
+      license_plate: [],
+      // for physical products
+      serial_number: [],
+      // for digital assets
+      publication_links: [],
+    },
   });
 
   const steps = [
@@ -56,6 +75,18 @@ const RegistrationPage = () => {
     { id: 5, name: 'Complete' }
   ];
 
+  useEffect(() => {
+    if (formData.category === "DigitalAsset" && maxFiles !== 10 && minFiles !== 1) {
+      // for digital assets
+      setMaxFiles(10);
+      setMinFiles(1);
+    } else {
+      // for physical assets
+      setMaxFiles(5);
+      setMinFiles(2);
+    }
+  }, [formData.category]);
+
   const updateProgress = (step) => {
     const newProgress = ((step - 1) / (steps.length - 1)) * 100;
     setProgress(newProgress);
@@ -63,7 +94,7 @@ const RegistrationPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+    console.log(`input changed - name: ${name}, value: ${value}`);
     if (name.includes('details.')) {
       const detailField = name.split('.')[1];
       setFormData(prev => ({
@@ -88,20 +119,20 @@ const RegistrationPage = () => {
   };
 
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
+    const uploadedFiles = e.target.files;
+    if (uploadedFiles.length > 0) {
       // In a real app, you would upload the file and get a URL
       setFormData(prev => ({
         ...prev,
-        ownership_proof: {
-          ...prev.ownership_proof,
-          document_url: URL.createObjectURL(file)
+        details: {
+          ...prev.details,
+          files: uploadedFiles
         }
       }));
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStep >= steps.length) return;
     setIsAnimating(true);
     setTimeout(() => {
@@ -130,6 +161,87 @@ const RegistrationPage = () => {
       setIsAnimating(false);
     }, 500);
   };
+
+  const detailsFiles = () => {
+   const label = formData.category === 'DigitalAsset'
+    ? 'Upload your digital assets files'
+    : 'Upload at least 2 different images of your asset';
+
+    const handleUpload = async (e) => {
+      const newFiles = e.target.files;
+      // here should check that uploaded files count and show a notification if
+      // it exeeds the maximum count
+      for (const file of newFiles) {
+        const processedFile = await processFile(file);
+        setFormData((prev) => ({
+          ...prev,
+          details: {
+            ...prev.details,
+            files: [...prev.details.files, processedFile]
+          }
+        }));
+        setFileNames((prev) => [...prev, file.name]);
+        }
+    };
+
+    return (
+      <div>
+        <label className="block text-sm font-medium text-white mb-2">
+          {label}
+        </label>
+        <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center bg-white/5 backdrop-blur-sm">
+          <IconUpload className="mx-auto text-gray-400 w-12 h-12 mb-4" />
+         {fileNames.map((name, i) => (
+            <p className="text-s text-gray-500" key={i}>
+              {name}
+            </p>
+          ))}
+          <p className="text-lg text-gray-300 mb-2">
+            {formData.details.files.length > 0 ? 'uploaded succesfully!' : 'Drag & drop files here or browse'}
+          </p>
+          <input
+            type="file"
+            onChange={handleUpload}
+            className="hidden"
+            id="file-upload"
+          />
+          <motion.label
+            htmlFor="file-upload"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-blue-400 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-500/40 transition-all"
+          >
+            {formData.details.files.length > 0 ? 'Change File' : 'Select File'}
+          </motion.label>
+        </div>
+      </div>
+    );
+  }
+
+  const submitAsset = async () => {
+      // modify data to be readble in the backend rust
+      const backendObject = {...formData};
+      const assetType = {};
+      const assetCategory = {};
+      assetType[backendObject.asset_type] = null;
+      assetCategory[backendObject.category] = null;
+      backendObject.asset_type = assetType;
+      backendObject.category = assetCategory;
+
+      Object.keys(backendObject.ownership_proof).forEach((key) => {
+        if (!Array.isArray(backendObject.ownership_proof[key]) && backendObject.ownership_proof[key] !== '') {
+          backendObject.ownership_proof[key] = [backendObject.ownership_proof[key]];
+        }
+      });
+
+      console.log('form data', backendObject);
+      try {
+        const hash = await registerAsset(backendObject);
+        console.log('hash', hash);
+      } catch (error) {
+        console.log('error:', error);
+      }
+  }
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -179,6 +291,7 @@ const RegistrationPage = () => {
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mb-4">
                   <IconFileTextShield className="text-purple-400 w-8 h-8" />
                 </div>
+                {/* might need to be changed to non physical Asset*/}
                 <span className="font-medium text-lg">Digital Asset</span>
                 <p className="text-gray-400 text-sm mt-2">NFTs, IP, contracts, digital goods</p>
               </motion.button>
@@ -246,32 +359,19 @@ const RegistrationPage = () => {
         );
 
       case 3:
-        const getCategorySpecificFields = () => {
+       const getCategorySpecificFields = () => {
           switch(formData.category) {
             case 'RealEstate':
               return [
-                { name: 'details.serial_or_id', label: 'Deed/Title Number', icon: <IconId />, type: 'text' },
-                { name: 'details.jurisdiction', label: 'Property Jurisdiction', icon: <IconWorld />, type: 'text' }
+                { name: 'details.address', label: 'Address', icon: <IconId />, type: 'text' },
               ];
             case 'Vehicle':
               return [
-                { name: 'details.serial_or_id', label: 'VIN Number', icon: <IconId />, type: 'text' },
-                { name: 'details.jurisdiction', label: 'Registration State', icon: <IconWorld />, type: 'text' }
+                { name: 'details.type', label: 'Type: car, motorcycle, etc..', icon: <IconId />, type: 'text' },
               ];
-            case 'DigitalAsset':
+            case 'Equipment':
               return [
-                { name: 'details.serial_or_id', label: 'Token/Asset ID', icon: <IconId />, type: 'text' },
-                { name: 'details.jurisdiction', label: 'Blockchain Network', icon: <IconWorld />, type: 'text' }
-              ];
-            case 'IntellectualProperty':
-              return [
-                { name: 'details.serial_or_id', label: 'Registration Number', icon: <IconId />, type: 'text' },
-                { name: 'details.jurisdiction', label: 'Registration Country', icon: <IconWorld />, type: 'text' }
-              ];
-            default:
-              return [
-                { name: 'details.serial_or_id', label: 'Identification Number', icon: <IconId />, type: 'text' },
-                { name: 'details.jurisdiction', label: 'Jurisdiction', icon: <IconWorld />, type: 'text' }
+                { name: 'Manufacturer', label: 'Manufacturer', icon: <IconId />, type: 'text' },
               ];
           }
         };
@@ -288,6 +388,9 @@ const RegistrationPage = () => {
             </h2>
             
             <div className="space-y-4">
+
+             {formData.category === 'IntellectualProperty' || detailsFiles()}
+
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <IconFileDescription className="text-gray-400" />
@@ -314,23 +417,26 @@ const RegistrationPage = () => {
                 />
               </div>
 
-              {getCategorySpecificFields().map((field) => (
-                <div key={field.name} className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    {field.icon}
+              { ['RealEstate', 'Equipment', 'Vehicle'].includes(formData.category) &&
+                getCategorySpecificFields().map((field) => {
+                return (
+                  <div key={field.name} className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      {field.icon}
+                    </div>
+                    <input
+                      type={field.type}
+                      name={field.name}
+                      value={formData.details[field.name.split('.')[1]] || ''}
+                      onChange={handleInputChange}
+                      className="block w-full pl-10 pr-3 py-3 bg-white/10 border border-white/20 rounded-lg text-white backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={field.label}
+                    />
                   </div>
-                  <input
-                    type={field.type}
-                    name={field.name}
-                    value={formData.details[field.name.split('.')[1]] || ''}
-                    onChange={handleInputChange}
-                    className="block w-full pl-10 pr-3 py-3 bg-white/10 border border-white/20 rounded-lg text-white backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={field.label}
-                  />
-                </div>
-              ))}
+                )
+              })}
 
-              <div>
+             <div>
                 <textarea
                   name="details.extra_metadata"
                   value={formData.details.extra_metadata}
@@ -366,6 +472,37 @@ const RegistrationPage = () => {
         );
 
       case 4:
+        const getCategorySpecificProofs = () => {
+          switch(formData.category) {
+            case 'RealEstate':
+              return [
+                { name: 'proof.deed_reference_number', label: 'Deed Reference Number', icon: <IconId />, type: 'text' },
+              ];
+            case 'Vehicle':
+              return [
+                { name: 'proof.registeration_number', label: 'Registeration Number', icon: <IconId />, type: 'text' },
+                { name: 'proof.license_plate', label: 'License Plate', icon: <IconId />, type: 'text' },                
+              ];
+            case 'ValuableItem':
+              return [
+                { name: 'proof.serial_number', label: 'Serial Number', icon: <IconId />, type: 'text' },
+              ];
+            case 'Equipment':
+              return [
+                { name: 'proof.serial_number', label: 'Serial Number', icon: <IconId />, type: 'text' },
+              ];
+            case 'IntellectualProperty':
+              return [
+                { name: 'proof.registeration_number', label: 'Registeration Number', icon: <IconId />, type: 'text' },
+              ];
+            case 'DigitalAsset':
+              return [
+                // should be a list of links instead
+                { name: 'proof.publication_links', label: 'Publication Links', icon: <IconId />, type: 'text' },
+              ];
+          }
+        };
+
         return (
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
@@ -378,33 +515,54 @@ const RegistrationPage = () => {
             </h2>
             
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Upload Proof Document
-                </label>
-                <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center bg-white/5 backdrop-blur-sm">
-                  <IconUpload className="mx-auto text-gray-400 w-12 h-12 mb-4" />
-                  <p className="text-lg text-gray-300 mb-2">
-                    {formData.ownership_proof.document_url ? 'Document uploaded!' : 'Drag & drop files here or browse'}
-                  </p>
-                  <input
-                    type="file"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <motion.label
-                    htmlFor="file-upload"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-blue-400 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-500/40 transition-all"
-                  >
-                    {formData.ownership_proof.document_url ? 'Change File' : 'Select File'}
-                  </motion.label>
-                </div>
-              </div>
+              {/* need to be modified to show file names, and to prevent uploading more than 2 documents*/}
+              {formData.category === 'RealEstate' && (
+                <div>
+                  <label className="block text-sm font-medium text-white mb-2">
+                    Upload Deed Document
+                  </label>
+                  <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center bg-white/5 backdrop-blur-sm">
+                    <IconUpload className="mx-auto text-gray-400 w-12 h-12 mb-4" />
+                    <p className="text-lg text-gray-300 mb-2">
+                      {formData.ownership_proof.document_url ? 'Document uploaded!' : 'Drag & drop files here or browse'}
+                    </p>
+                    <input
+                      type="file"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <motion.label
+                      htmlFor="file-upload"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-blue-400 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-500/40 transition-all"
+                    >
+                      {formData.ownership_proof.document_url ? 'Change File' : 'Select File'}
+                    </motion.label>
+                  </div>
+                </div>)
+              }
 
-              <div className="relative">
+              {getCategorySpecificProofs().map((field) => {
+                return (
+                  <div key={field.name} className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      {field.icon}
+                    </div>
+                    <input
+                      type={field.type}
+                      name={field.name}
+                      value={formData.ownership_proof[field.name.split('.')[1]] || ''}
+                      onChange={handleInputChange}
+                      className="block w-full pl-10 pr-3 py-3 bg-white/10 border border-white/20 rounded-lg text-white backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={field.label}
+                    />
+                  </div>
+                )
+              })}
+
+             {/* <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <IconUserCheck className="text-gray-400" />
                 </div>
@@ -430,7 +588,7 @@ const RegistrationPage = () => {
                   className="block w-full pl-10 pr-3 py-3 bg-white/10 border border-white/20 rounded-lg text-white backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Acquisition Date"
                 />
-              </div>
+              </div> */}
             </div>
 
             <div className="flex justify-between mt-8">
@@ -444,11 +602,11 @@ const RegistrationPage = () => {
                 Back
               </motion.button>
               <motion.button
-                onClick={nextStep}
+                onClick={submitAsset}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium flex items-center"
-                disabled={!formData.ownership_proof.document_url}
+                disabled={false}
               >
                 Review & Submit
                 <IconArrowRight className="ml-2 w-5 h-5" />

@@ -9,11 +9,12 @@ export const idlFactory = ({ IDL }) => {
     'NonPhysical' : IDL.Null,
   });
   const AssetDetails = IDL.Record({
-    'extra_metadata' : IDL.Opt(IDL.Text),
+    'files' : IDL.Vec(IDL.Vec(IDL.Nat8)),
+    'manufacturer' : IDL.Opt(IDL.Text),
     'name' : IDL.Text,
+    'type' : IDL.Opt(IDL.Text),
     'description' : IDL.Text,
-    'jurisdiction' : IDL.Opt(IDL.Text),
-    'serial_or_id' : IDL.Opt(IDL.Text),
+    'address' : IDL.Opt(IDL.Text),
   });
   const AssetCategory = IDL.Variant({
     'IntellectualProperty' : IDL.Null,
@@ -22,12 +23,14 @@ export const idlFactory = ({ IDL }) => {
     'ValuableItem' : IDL.Null,
     'DigitalAsset' : IDL.Null,
     'Equipment' : IDL.Null,
-    'ContractualRights' : IDL.Null,
   });
   const Proof = IDL.Record({
-    'document_url' : IDL.Opt(IDL.Text),
-    'witness' : IDL.Opt(IDL.Text),
-    'acquisition_date' : IDL.Opt(IDL.Nat64),
+    'deed_document' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+    'deed_reference_number' : IDL.Opt(IDL.Text),
+    'publication_links' : IDL.Opt(IDL.Text),
+    'license_plate' : IDL.Opt(IDL.Text),
+    'serial_number' : IDL.Opt(IDL.Text),
+    'registeration_number' : IDL.Opt(IDL.Text),
   });
   const AssetUserInput = IDL.Record({
     'asset_type' : AssetType,

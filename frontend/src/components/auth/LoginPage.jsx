@@ -3,11 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import WalletButton from '../ui/WalletButton'
 import { IconMail, IconBrandInternetComputer, IconPlug } from '@tabler/icons-react'
+import { InternetIdentityAuth } from './InternetIdentityAuth';
 
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState('wallet')
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [authInternetIdentity, setAuthInternetIdentity] = useState(false);
   
   const { login } = useAuth()
   const { state } = useLocation()
@@ -80,9 +82,10 @@ export default function LoginPage() {
               <WalletButton 
                 icon={<IconBrandInternetComputer />}
                 label="Internet Identity"
-                onClick={() => handleWalletConnect('internet-identity')}
+                onClick={() => setAuthInternetIdentity(true)}
                 disabled={isLoading}
               />
+	    <InternetIdentityAuth toAuth={authInternetIdentity}/>
               <WalletButton 
                 icon={<IconPlug />}
                 label="Plug Wallet"
