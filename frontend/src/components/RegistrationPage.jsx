@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { processFile } from '../utils';
-import { registerAsset } from '../controller/controller.js';
+import { registerAsset, getAsset } from '../controller/controller.js';
 import { 
   IconUpload, 
   IconHome, 
@@ -35,6 +35,8 @@ const RegistrationPage = () => {
   const [fileNames, setFileNames] = useState([]);
   const [maxFiles, setMaxFiles] = useState(5);
   const [minFiles, setMinFiles] = useState(2);
+  const [proofFileNames, setProofFileNames] = useState([]);
+  const [maxProofFiles, setMaxProofFiles] = useState(2);
 
   // Form state matching Rust structs
   const [formData, setFormData] = useState({
@@ -85,8 +87,44 @@ const RegistrationPage = () => {
       setMaxFiles(5);
       setMinFiles(2);
     }
+
+    console.log('form data', formData);
+
+    clearForm();
   }, [formData.category]);
 
+  const clearForm = () => {
+    setFormData((prev) => ({
+      ...prev,
+      details: {
+        // images only allowed for physical assets, and all files allowed for digital assets
+        files: [],
+        name: '',
+        description: '',
+        // for real estate
+        address: [],
+        // for vehicles like car, motorcycle, etc...
+        type: [],
+        // for equipmenets
+        manufacturer: [],
+      },
+      ownership_proof: {
+        // for real estate
+        deed_document: [],
+        deed_reference_number: [],
+        // for vehicles and intellectual properties
+        registeration_number: [],
+        // for vehicles
+        license_plate: [],
+        // for physical products
+        serial_number: [],
+        // for digital assets
+        publication_links: [],
+      },
+    }));
+    setFileNames([]);
+    setProofFileNames([]);
+  }
   const updateProgress = (step) => {
     const newProgress = ((step - 1) / (steps.length - 1)) * 100;
     setProgress(newProgress);
@@ -94,7 +132,6 @@ const RegistrationPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(`input changed - name: ${name}, value: ${value}`);
     if (name.includes('details.')) {
       const detailField = name.split('.')[1];
       setFormData(prev => ({
@@ -118,7 +155,7 @@ const RegistrationPage = () => {
     }
   };
 
-  const handleFileUpload = (e) => {
+ /* const handleFileUpload = (e) => {
     const uploadedFiles = e.target.files;
     if (uploadedFiles.length > 0) {
       // In a real app, you would upload the file and get a URL
@@ -130,10 +167,12 @@ const RegistrationPage = () => {
         }
       }));
     }
-  };
+  };*/
 
   const nextStep = async () => {
     if (currentStep >= steps.length) return;
+    if (isAnimating) return;
+
     setIsAnimating(true);
     setTimeout(() => {
       setCurrentStep(prev => {
@@ -151,6 +190,8 @@ const RegistrationPage = () => {
 
   const prevStep = () => {
     if (currentStep <= 1) return;
+    if (isAnimating) return;
+
     setIsAnimating(true);
     setTimeout(() => {
       setCurrentStep(prev => {
@@ -173,6 +214,8 @@ const RegistrationPage = () => {
       // it exeeds the maximum count
       for (const file of newFiles) {
         const processedFile = await processFile(file);
+
+        console.log('processed file', processedFile);
         setFormData((prev) => ({
           ...prev,
           details: {
@@ -219,28 +262,13 @@ const RegistrationPage = () => {
   }
 
   const submitAsset = async () => {
-      // modify data to be readble in the backend rust
-      const backendObject = {...formData};
-      const assetType = {};
-      const assetCategory = {};
-      assetType[backendObject.asset_type] = null;
-      assetCategory[backendObject.category] = null;
-      backendObject.asset_type = assetType;
-      backendObject.category = assetCategory;
 
-      Object.keys(backendObject.ownership_proof).forEach((key) => {
-        if (!Array.isArray(backendObject.ownership_proof[key]) && backendObject.ownership_proof[key] !== '') {
-          backendObject.ownership_proof[key] = [backendObject.ownership_proof[key]];
-        }
-      });
-
-      console.log('form data', backendObject);
-      try {
-        const hash = await registerAsset(backendObject);
-        console.log('hash', hash);
-      } catch (error) {
-        console.log('error:', error);
-      }
+    try {
+      const hash = await registerAsset(formData);
+      nextStep();
+    } catch (error) {
+      console.log('error:', error);
+    }
   }
 
   const renderStepContent = () => {
@@ -371,7 +399,7 @@ const RegistrationPage = () => {
               ];
             case 'Equipment':
               return [
-                { name: 'Manufacturer', label: 'Manufacturer', icon: <IconId />, type: 'text' },
+                { name: 'details.manufacturer', label: 'Manufacturer', icon: <IconId />, type: 'text' },
               ];
           }
         };
@@ -503,6 +531,61 @@ const RegistrationPage = () => {
           }
         };
 
+        {/* need to be modified to show file names, and to prevent uploading more than 2 documents*/}
+        const proofFiles = () => {
+
+          const handleUpload = async (e) => {
+            const newFiles = e.target.files;
+            // here should check that uploaded files count and show a notification if
+            // it exeeds the maximum count
+            for (const file of newFiles) {
+              const processedFile = await processFile(file);
+
+              setFormData((prev) => ({
+                ...prev,
+                ownership_proof: {
+                  ...prev.ownership_proof,
+                  deed_document: [...prev.ownership_proof.deed_document, processedFile]
+                }
+              }));
+              setProofFileNames((prev) => [...prev, file.name]);
+              }
+          };
+
+          return (
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">
+                Upload Deed Document
+              </label>
+              <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center bg-white/5 backdrop-blur-sm">
+                <IconUpload className="mx-auto text-gray-400 w-12 h-12 mb-4" />
+               {proofFileNames.map((name, i) => (
+                  <p className="text-s text-gray-500" key={i}>
+                    {name}
+                  </p>
+                ))}
+                <p className="text-lg text-gray-300 mb-2">
+                  {formData.ownership_proof.deed_document > 0 ? 'uploaded succesfully!' : 'Drag & drop files here or browse'}
+                </p>
+                <input
+                  type="file"
+                  onChange={handleUpload}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <motion.label
+                  htmlFor="file-upload"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-blue-400 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-500/40 transition-all"
+                >
+                  {formData.ownership_proof.deed_document > 0 ? 'Change File' : 'Select File'}
+                </motion.label>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
@@ -515,34 +598,8 @@ const RegistrationPage = () => {
             </h2>
             
             <div className="space-y-4">
-              {/* need to be modified to show file names, and to prevent uploading more than 2 documents*/}
-              {formData.category === 'RealEstate' && (
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Upload Deed Document
-                  </label>
-                  <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center bg-white/5 backdrop-blur-sm">
-                    <IconUpload className="mx-auto text-gray-400 w-12 h-12 mb-4" />
-                    <p className="text-lg text-gray-300 mb-2">
-                      {formData.ownership_proof.document_url ? 'Document uploaded!' : 'Drag & drop files here or browse'}
-                    </p>
-                    <input
-                      type="file"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="file-upload"
-                    />
-                    <motion.label
-                      htmlFor="file-upload"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-blue-400 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-500/40 transition-all"
-                    >
-                      {formData.ownership_proof.document_url ? 'Change File' : 'Select File'}
-                    </motion.label>
-                  </div>
-                </div>)
-              }
+
+              { formData.category === 'RealEstate' && proofFiles()}
 
               {getCategorySpecificProofs().map((field) => {
                 return (

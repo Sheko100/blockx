@@ -68,3 +68,30 @@ function isTextFile(file) {
     type.includes("csv")        // sometimes CSV can be odd MIME types
   );
 }
+
+export function arrayIt(value) {
+  if (Array.isArray(value))
+    return value;
+  else if (value !== '')
+    return [value];
+
+  return [];
+}
+
+export function objectIt(value, objValue=null) {
+  if (isPlainObj(value)) return value;
+
+  const obj = {}
+  obj[value] = objValue;
+
+  return obj;
+}
+
+function isPlainObj(value) {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.prototype.toString.call(value) === '[object Object]'
+  );
+}

@@ -11,13 +11,13 @@ import VerifyProperty from './components/VerifyProperty';
 import DashboardPage from './components/DashboardPage.jsx';
 
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+/*ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AuthProvider>
       <App />
     </AuthProvider>
   </React.StrictMode>
-);
+);*/
 
 
 function App() {

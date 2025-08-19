@@ -118,7 +118,6 @@ const LandingPage = ({ connectWallet }) => {
               transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
               className="w-10 h-10 bg-gradient-to-r from-blue-500 to-orange-500 rounded-lg flex items-center justify-center text-white font-bold text-xl"
             >
-              P
             </motion.div>
             <span className="ml-3 text-xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent">PropLicense</span>
           </motion.div>
@@ -127,7 +126,7 @@ const LandingPage = ({ connectWallet }) => {
             {['Features', 'How It Works', 'About'].map((item) => (
               <motion.a
                 key={item}
-                href={`#${item.toLowerCase().replace(' ', '-')}`}
+                href={`#${item.toLowerCase().replace(/ /g, '-')}`}
                 className="text-gray-300 hover:text-white relative group"
                 whileHover={{ scale: 1.05 }}
               >
@@ -295,7 +294,7 @@ const LandingPage = ({ connectWallet }) => {
                 }}
                 transition={{
                   duration: 0.5,
-                  type: "spring"
+                  //type: "spring"
                 }}
                 className="relative bg-gray-800/50 backdrop-blur-md p-8 rounded-2xl shadow-2xl border border-gray-700/50 overflow-hidden"
               >
