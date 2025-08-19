@@ -3,9 +3,12 @@ mod store;
 mod user;
 mod asset;
 mod utils;
+mod err;
+use crate::err::{ServiceError, ServiceResult};
 use crate::user::{User, add_user, get_user, get_users_count};
 use crate::hash::hash_text;
 use crate::asset::{
+    Asset,
     AssetType,
     AssetCategory,
     AssetDetails,
@@ -49,33 +52,96 @@ mod tests {
 
     #[test]
     fn test_register_asset() {
-        let new_details = AssetDetails {
+        let vehicle_details = AssetDetails {
+            files: vec![[1, 100, 160].to_vec(), [2, 240, 233].to_vec(), [5, 4].to_vec()],
             name: String::from("My Car"),
             description: String::from("Toyota red car"),
-            serial_or_id: Some(String::from("45645688")),
-            jurisdiction: Some(String::from("Egypt")),
-            extra_metadata: Some(String::from("extra metadata")),
+            r#type: Some(String::from("car")),
+            address: None,
+            manufacturer: None,
         };
-        let new_proof = Proof {
-            document_url: Some(String::from("https://redcar.com")),
-            witness: Some(String::from("John Doe")),
-            acquisition_date: Some(7645886),
+        let vehicle_proof = Proof {
+            deed_document: None,
+            deed_reference_number: None,
+            registeration_number: Some(String::from("4894564564")),
+            license_plate: Some(String::from("123/abc")),
+            serial_number: None,
+            publication_links: None,
         };
-        let user_asset_data = AssetUserInput {
+        let user_input_data = AssetUserInput {
             asset_type: AssetType::Physical,
             category: AssetCategory::Vehicle,
-            details: new_details,
-            ownership_proof: new_proof,
+            details: vehicle_details,
+            ownership_proof: vehicle_proof,
 
         };
-        let curr_count = get_assets_count();
-    
-        let hash = register_asset(user_asset_data);
+        let curr_count = get_assets_count(None);
+        let curr_category_count = get_assets_count(Some(AssetCategory::Vehicle));
+        let result = register_asset(user_input_data);
 
-        let new_count = get_assets_count();
+        let new_category_count = get_assets_count(Some(AssetCategory::Vehicle));
+        let new_count = get_assets_count(None);
+
+        let asset = get_asset(0);
 
         assert_eq!(new_count, curr_count + 1);
+        assert_eq!(new_category_count, curr_category_count + 1);
+        assert_eq!(asset.hash, result.unwrap());
     }
+
+        #[test]
+    fn test_register_same_asset() {
+        let vehicle_details = AssetDetails {
+            files: vec![[1, 100, 160].to_vec(), [2, 240, 233].to_vec(), [5, 4].to_vec()],
+            name: String::from("My Car"),
+            description: String::from("Toyota red car"),
+            r#type: Some(String::from("car")),
+            address: None,
+            manufacturer: None,
+        };
+        let vehicle_proof = Proof {
+            deed_document: None,
+            deed_reference_number: None,
+            registeration_number: Some(String::from("4894564564")),
+            license_plate: Some(String::from("123/abc")),
+            serial_number: None,
+            publication_links: None,
+        };
+        let vehicle_input_data = AssetUserInput {
+            asset_type: AssetType::Physical,
+            category: AssetCategory::Vehicle,
+            details: vehicle_details.clone(),
+            ownership_proof: vehicle_proof.clone(),
+
+        };
+
+        let vehicle2_input_data = AssetUserInput {
+            asset_type: AssetType::Physical,
+            category: AssetCategory::Vehicle,
+            details: vehicle_details,
+            ownership_proof: vehicle_proof,
+        };
+
+
+
+        let first_result = register_asset(vehicle_input_data);
+
+        let curr_count = get_assets_count(None);
+        let curr_category_count = get_assets_count(Some(AssetCategory::Vehicle));
+
+        let second_result = register_asset(vehicle2_input_data);
+
+        let new_category_count = get_assets_count(Some(AssetCategory::Vehicle));
+        let new_count = get_assets_count(None);
+
+        ///let asset = get_asset(0);
+
+        assert_eq!(new_count, curr_count);
+        assert_eq!(new_category_count, curr_category_count);
+        //assert!(match!(second,result, Err(ServiceError::AssetAlreadyExists)));
+    }
+
+
 }
 
 // Enable Candid export

@@ -1,5 +1,6 @@
 use sha2::{Sha256, Digest};
 use crate::asset::{Asset, AssetType, AssetCategory};
+use candid::{CandidType, Deserialize, Encode, Decode};
 
 pub fn hash_bytes(data: Vec<u8>) -> Vec<u8> {
     let mut hasher = Sha256::new();
@@ -26,11 +27,13 @@ pub fn hash_text(data: &str) -> String {
 impl Asset {
     pub fn hash_unique_fields(&mut self) {
         // --- Hash ownership proof ---
-        if let Some(doc) = &self.ownership_proof.deed_document {
+
+        // need to be a list of hashed files
+        /*if let Some(doc) = &self.ownership_proof.deed_document {
             if !doc.is_empty() {
                 self.ownership_proof.deed_document = Some(hash_bytes(doc.clone()));
             }
-        }
+        }*/
 
         if let Some(ref num) = self.ownership_proof.deed_reference_number {
             if !num.is_empty() {
@@ -102,6 +105,21 @@ impl Asset {
                 }
             }
         }
+    }
+    pub fn compute_hash(&self) -> String {
+        let mut asset_clone = self.clone();
+        //asset_clone.hash = String::new(); // exclude existing hash
+
+        // Serialize (json or bincode)
+        let serialized = Encode!(&asset_clone)
+            .expect("Failed to serialize asset");
+
+        // Hash it
+        let mut hasher = Sha256::new();
+        hasher.update(&serialized);
+        let result = hasher.finalize();
+
+        hex::encode(result) // return lowercase hex string
     }
 }
 

@@ -1,54 +1,18 @@
 use std::borrow::Cow;
 use ic_stable_structures::{Storable, storable::Bound};
-use candid::{CandidType, Deserialize, Encode, Decode};
+use candid::{CandidType, Deserialize, Encode, Decode, Principal};
+use ic_cdk::api::msg_caller;
 use crate::store::{store_asset, retrieve_asset, retrieve_assets_count, asset_ids_by_category};
 use crate::hash::{normalize_str, normalize_opt_str, hash_text};
-use crate::utils::get_timestamp;
+use crate::utils::{get_timestamp, is_authenticated};
+use crate::err::{ServiceError, ServiceResult};
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct AssetUserInput {
     pub asset_type: AssetType,
     pub category: AssetCategory,     // sub-category
-    pub details: AssetDetails,       // structured details
+    pub details: AssetDetails,      // structured details
     pub ownership_proof: Proof,
-}
-
-#[derive(CandidType, Deserialize, Clone, Debug)]
-pub struct Asset {
-    //pub id: u128,
-    //pub owner_id: u128,
-    pub asset_type: AssetType,
-    pub category: AssetCategory,
-    pub details: AssetDetails,
-    pub ownership_proof: Proof,
-    pub hash: String,
-    pub created_at: u128,
-}
-
-impl Storable for Asset {
-    fn to_bytes(&self) -> Cow<[u8]> {
-        Cow::Owned(Encode!(self).unwrap())
-    }
-
-    fn from_bytes(bytes: Cow<[u8]>) -> Self {
-        Decode!(bytes.as_ref(), Self).unwrap()
-    }
-    const BOUND: Bound = Bound::Unbounded;
-}
-
-#[derive(CandidType, Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct AssetIds(pub Vec<u128>);
-
-impl Storable for AssetIds {
-    fn to_bytes(&self) -> Cow<[u8]> {
-        Cow::Owned(Encode!(self).unwrap())
-    }
-
-    fn from_bytes(bytes: Cow<[u8]>) -> Self {
-        Decode!(bytes.as_ref(), Self).unwrap()
-    }
-
-    const BOUND: Bound = Bound::Unbounded;
 }
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
@@ -106,6 +70,49 @@ pub struct Proof {
     pub serial_number: Option<String>,
     // for digital assets
     pub publication_links: Option<String>,
+}
+
+#[derive(CandidType,Deserialize, Clone, Debug)]
+pub struct Asset {
+    pub owner: Principal,
+    pub asset_type: AssetType,
+    pub category: AssetCategory,
+    pub details: AssetDetails,
+    pub ownership_proof: Proof,
+    pub hash: String,
+    pub created_at: u128,
+}
+
+impl Asset {
+    pub fn is_owner(&self, caller: Principal) -> bool {
+        caller == self.owner
+    }
+}
+
+impl Storable for Asset {
+    fn to_bytes(&self) -> Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+    const BOUND: Bound = Bound::Unbounded;
+}
+
+#[derive(CandidType, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct AssetIds(pub Vec<u128>);
+
+impl Storable for AssetIds {
+    fn to_bytes(&self) -> Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+
+    const BOUND: Bound = Bound::Unbounded;
 }
 
 /* YOU WERE HERE
@@ -197,43 +204,57 @@ pub struct Proof {
  *   - Ownership Proof
  *     - Registration number
  */
-#[ic_cdk_macros::update]
-pub fn register_asset(mut asset_data: AssetUserInput) -> String {
+#[ic_cdk::update]
+pub fn register_asset(mut asset_data: AssetUserInput) -> ServiceResult<String> {
+
+    /*if (is_authenticated()) {
+        return Err(ServiceError::Unauthorized(
+            String::from("Only autenticated users can register assets")
+        ));
+    }*/
 
     let normalized_text = normalize_asset_input(&mut asset_data);
     //let asset_hash = hash_text(&normalized_text);
-    let asset_hash = String::from("654as5da");
 
     let mut asset = Asset {
+        owner: msg_caller(),
         asset_type: asset_data.asset_type,
         category: asset_data.category,     // sub-category
         details: asset_data.details,       // structured details
         ownership_proof: asset_data.ownership_proof, // must always be hashed
-        hash: asset_hash,
+        hash: String::new(),
+        //created_at: get_timestamp(true),             // timestamp
         created_at: get_timestamp(),             // timestamp
     };
 
-    //asset.hash_unique_fields();
+    // hash the whole asset
+    let asset_hash = asset.compute_hash();
+
+    // add the hash
+    asset.hash = asset_hash;
+
+    asset.hash_unique_fields();
 
     //println!("asset after hashing: {asset:?}");
 
-    if is_unique_asset(&asset) {
-        println!("new asset is unique");
-    } else {
-        println!("new asset is not unique");
+    if is_unique_asset(&asset) == false {
+        return Err(ServiceError::AssetAlreadyExists(
+            String::from("Asset Can not be created, as it has been already registered")
+        ));
     }
 
     let hash = asset.hash.clone();
 
     store_asset(asset);
 
-    hash
+    Ok(hash)
 }
 
 /*
  * TODO:
  * add guards for key beyond the stored users count
  */
+#[ic_cdk::query]
 pub fn get_asset(key: u128) -> Asset {
     let asset: Asset = retrieve_asset(key).expect("Couldn't retrieve the asset");
 
@@ -261,7 +282,7 @@ pub fn is_unique_asset(new_asset: &Asset) -> bool {
     let category: &AssetCategory = &new_asset.category;
     let asset_ids: Vec<u128> = asset_ids_by_category(category);
 
-    println!("category: {category:?}");
+    //println!("category: {category:?}");
     // iterate category assets
     for id in asset_ids {
         // get cetgory asset
