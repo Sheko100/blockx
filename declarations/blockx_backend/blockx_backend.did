@@ -1,3 +1,12 @@
+type Asset = record {
+  asset_type : AssetType;
+  owner : principal;
+  hash : text;
+  created_at : nat;
+  details : AssetDetails;
+  category : AssetCategory;
+  ownership_proof : Proof;
+};
 type AssetCategory = variant {
   IntellectualProperty;
   RealEstate;
@@ -29,9 +38,21 @@ type Proof = record {
   serial_number : opt text;
   registeration_number : opt text;
 };
+type Result = variant { Ok : text; Err : ServiceError };
+type ServiceError = variant {
+  InvalidCategory : text;
+  NotFound : text;
+  AssetAlreadyExists : text;
+  Unauthorized : text;
+  MissingProof : text;
+  InternalError : text;
+};
 type User = record { username : text; password : text; email : text };
 service : {
   add_user : (text, text, text) -> (nat);
+  get_asset : (nat) -> (Asset) query;
+  get_ic_timestamp : () -> (nat) query;
+  get_system_timestamp : () -> (nat) query;
   get_user : (nat) -> (User) query;
-  register_asset : (AssetUserInput) -> (text);
+  register_asset : (AssetUserInput) -> (Result);
 }
