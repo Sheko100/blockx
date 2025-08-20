@@ -51,8 +51,8 @@ type User = record { username : text; password : text; email : text };
 service : {
   add_user : (text, text, text) -> (nat);
   get_asset : (nat) -> (Asset) query;
-  get_ic_timestamp : () -> (nat) query;
-  get_system_timestamp : () -> (nat) query;
+  get_assets : (vec nat) -> (vec Asset) query;
   get_user : (nat) -> (User) query;
+  get_user_assets : () -> (vec Asset) query;
   register_asset : (AssetUserInput) -> (Result);
 }

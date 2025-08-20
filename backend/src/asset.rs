@@ -2,7 +2,15 @@ use std::borrow::Cow;
 use ic_stable_structures::{Storable, storable::Bound};
 use candid::{CandidType, Deserialize, Encode, Decode, Principal};
 use ic_cdk::api::msg_caller;
-use crate::store::{store_asset, retrieve_asset, retrieve_assets_count, asset_ids_by_category};
+use crate::store::{
+    store_asset,
+    retrieve_asset,
+    retrieve_assets,
+    retrieve_assets_count,
+    asset_ids_by_category,
+    asset_ids_by_principal,
+
+};
 use crate::hash::{normalize_str, normalize_opt_str, hash_text};
 use crate::utils::{get_timestamp, is_authenticated};
 use crate::err::{ServiceError, ServiceResult};
@@ -29,7 +37,6 @@ pub enum AssetCategory {
     Equipment,
     DigitalAsset,
     IntellectualProperty,
-    //ContractualRights,
 }
 
 impl Storable for AssetCategory {
@@ -153,7 +160,6 @@ impl Storable for AssetIds {
  * if any PROOF SECTION data already exist - CAN"T REGISTER OWNERSHIP
  *
  *
- *
  *- Physical assets
  * - Real State
  *   - Details
@@ -207,11 +213,11 @@ impl Storable for AssetIds {
 #[ic_cdk::update]
 pub fn register_asset(mut asset_data: AssetUserInput) -> ServiceResult<String> {
 
-    /*if (is_authenticated()) {
+    if !is_authenticated() {
         return Err(ServiceError::Unauthorized(
             String::from("Only autenticated users can register assets")
         ));
-    }*/
+    }
 
     let normalized_text = normalize_asset_input(&mut asset_data);
     //let asset_hash = hash_text(&normalized_text);
@@ -223,7 +229,6 @@ pub fn register_asset(mut asset_data: AssetUserInput) -> ServiceResult<String> {
         details: asset_data.details,       // structured details
         ownership_proof: asset_data.ownership_proof, // must always be hashed
         hash: String::new(),
-        //created_at: get_timestamp(true),             // timestamp
         created_at: get_timestamp(),             // timestamp
     };
 
@@ -244,8 +249,9 @@ pub fn register_asset(mut asset_data: AssetUserInput) -> ServiceResult<String> {
     }
 
     let hash = asset.hash.clone();
+    let user = msg_caller();
 
-    store_asset(asset);
+    store_asset(asset, user);
 
     Ok(hash)
 }
@@ -255,10 +261,28 @@ pub fn register_asset(mut asset_data: AssetUserInput) -> ServiceResult<String> {
  * add guards for key beyond the stored users count
  */
 #[ic_cdk::query]
-pub fn get_asset(key: u128) -> Asset {
-    let asset: Asset = retrieve_asset(key).expect("Couldn't retrieve the asset");
+pub fn get_asset(id: u128) -> Asset {
+    let asset: Asset = retrieve_asset(id).expect("Couldn't retrieve the asset");
 
     asset
+}
+
+#[ic_cdk::query]
+pub fn get_assets(ids: Vec<u128>) -> Vec<Asset> {
+    let assets = retrieve_assets(ids).expect("Couldn't retrieve the assets");
+
+    assets
+}
+
+#[ic_cdk::query]
+pub fn get_user_assets() -> Vec<Asset> {
+    let principal = msg_caller();
+
+    let user_assets_ids = asset_ids_by_principal(&principal);
+
+    let user_assets = get_assets(user_assets_ids);
+
+    user_assets
 }
 
 pub fn get_assets_count(category: Option<AssetCategory>) -> u128 {
@@ -282,12 +306,15 @@ pub fn is_unique_asset(new_asset: &Asset) -> bool {
     let category: &AssetCategory = &new_asset.category;
     let asset_ids: Vec<u128> = asset_ids_by_category(category);
 
-    //println!("category: {category:?}");
     // iterate category assets
     for id in asset_ids {
         // get cetgory asset
         let old_asset = get_asset(id);
         is_unique = is_data_unique(new_asset, &old_asset);
+        // add a checker to break once it's false without continuing the loop
+        if is_unique == false {
+            break;
+        }
     }
 
     is_unique
@@ -355,8 +382,9 @@ pub fn is_data_unique(new_asset: &Asset, old_asset: &Asset) -> bool {
 
 // Normalize all string fields in AssetUserInput
 pub fn normalize_asset_input(input: &mut AssetUserInput) {
-    input.details.name = normalize_str(&input.details.name);
-    input.details.description = normalize_str(&input.details.description);
+    // should not normalize what in details
+    //input.details.name = normalize_str(&input.details.name);
+    //input.details.description = normalize_str(&input.details.description);
 
     input.ownership_proof.deed_reference_number = normalize_opt_str(
         input.ownership_proof.deed_reference_number.as_ref()
