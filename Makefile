@@ -7,10 +7,16 @@ WASM_PATH := target/wasm32-unknown-unknown/release/$(PACKAGE_NAME).wasm
 DID_PATH := backend/src/blockx_rust.did
 DECLARATIONS_PATH := declarations
 
+
 all: dev deploy-all candid declarations
+
+fresh: dev-fresh deploy-all candid declarations
 
 dev:
 	dfx start --background || (dfx stop && dfx start --background)
+
+dev-fresh:
+	dfx start --background --clean || (dfx stop && dfx start --background --clean)
 
 stop-dev:
 	dfx stop
@@ -20,6 +26,9 @@ deploy-all:
 
 deploy-front:
 	dfx deploy ${FRONTEND_CANISTER}
+
+deploy-back:
+	dfx deploy ${BACKEND_CANISTER}
 
 candid:
 	candid-extractor ${WASM_PATH} > ${DID_PATH}
