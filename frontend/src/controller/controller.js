@@ -3,13 +3,6 @@ import { AuthClient } from '@dfinity/auth-client';
 import { arrayIt, objectIt } from '../utils';
 
 const backend = canisterId ? createActor(canisterId) : null;
-const network = process.env.DFX_NETWORK;
-const identityProvider =
-  network === 'ic'
-    ? 'https://identity.ic0.app' // Mainnet
-    : 'http://rdmx6-jaaaa-aaaaa-aaadq-cai.localhost:4943';
-
-console.log('identityProvider', identityProvider);
 
 // useless - should be deleted
 export async function hashText(text) {
@@ -56,6 +49,16 @@ export async function getAsset(id) {
   //console.log('owner principal', result.owner.toText())
 }
 
+export async function getUserAssets() {
+  if (!backend) throw 'Agent is not available';
+
+  console.log("backend", backend);
+
+  const userAssets = await backend.get_user_assets();
+
+  return userAssets;
+}
+
 // Modifies the data to be compitable with rust and the agent
 function prepareAssetData(data) {
   const preparedData = {...data};
@@ -72,38 +75,10 @@ function prepareAssetData(data) {
     detailsObj[option] = arrayIt(detailsObj[option])
   }
 
-  // add array if not array in the ownership_proof object
+  // add array if not array in the sownership_proof object
   for (const key of Object.keys(proofObj)) {
     proofObj[key] = arrayIt(proofObj[key]);
   }
 
   return preparedData;
-}
-
-/*export async function normalSignUp(email, password) {
-  console.log('sign up with email and password implementaion');
-}
-
-export async function login() {
-  console.log('login with email and password implementaion');
-}*/
-
-export async function authInternetIdentity(successHandler) {
-  if (!backend) throw 'Agent is not available';
-
-  const authState = {authClient: null, identityProvider};
-  try {
-    authState.authClient = await AuthClient.create();
-  } catch (error) {
-    console.log('error while using II', error);
-  }
-
-  console.log('identity before logging in', authState.authClient.getIdentity().getPrincipal());
-
-  await authState.authClient.login({
-    identityProvider,
-    onSuccess: successHandler,
-  });
-
-  return authState;
 }

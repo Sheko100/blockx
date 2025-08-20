@@ -1,58 +1,35 @@
 import React, { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { IconWallet, IconPlug, IconShieldLock, IconCloudNetwork, IconX, IconArrowRight, IconBrandDocker, IconCloud } from '@tabler/icons-react';
+import { IconShieldLock, IconX, IconCloudNetwork } from '@tabler/icons-react';
 import { motion } from "framer-motion"; 
+import { useIIAuth } from './context/InternetIdentityContext';
+import { useNavigate } from 'react-router-dom';
+import Header from './Header';
+import { toast } from 'react-hot-toast'
 
 const LoginPage = ({ onLoginSuccess, redirectAction }) => {
-  const [activeTab, setActiveTab] = useState('wallet');
   const [isConnecting, setIsConnecting] = useState(false);
-  const [email, setEmail] = useState('');
   const [showRedirectMessage, setShowRedirectMessage] = useState(!!redirectAction);
+  const { principal,login, logout, loading } = useIIAuth();
+  const navigate = useNavigate();
 
-  const walletProviders = [
-    {
-      id: 'internet-identity',
-      name: 'Internet Identity',
-      icon: <IconCloudNetwork className="w-5 h-5" />,
-      color: 'from-blue-500 to-blue-600'
-    },
-    {
-      id: 'plug',
-      name: 'Plug Wallet',
-      icon: <IconPlug className="w-5 h-5" />,
-      color: 'from-purple-500 to-purple-600'
-    },
-    {
-      id: 'Binance',
-      name: 'Binance Wallet',
-      icon: <IconWallet className="w-5 h-5" />,
-      color: 'from-green-500 to-green-600'
+  const handleConnect = async () => {
+    setIsConnecting(true);
+    try {
+      const id = await login();
+      console.log('id', id);
+      //setAuthInfo(authInfo);
+      toast.success("Logged in successfully");
+    } catch (error) {
+      console.error('error while logging in', error);
+      toast.error('Failed to log in');
+      return;
+    } finally {
+      setIsConnecting(false);
     }
-  ];
 
-  const handleConnect = (provider) => {
-    setIsConnecting(true);
-    // Simulate wallet connection
-    setTimeout(() => {
-      setIsConnecting(false);
-      onLoginSuccess({
-        principal: "2vxsx-fae...", // truncated principal
-        provider
-      });
-    }, 1500);
-  };
-
-  const handleEmailSubmit = (e) => {
-    e.preventDefault();
-    setIsConnecting(true);
-    // Simulate email login
-    setTimeout(() => {
-      setIsConnecting(false);
-      onLoginSuccess({
-        principal: "email-user",
-        provider: "email"
-      });
-    }, 1500);
+    navigate('/dashboard');
+;
   };
 
   return (
@@ -118,32 +95,9 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
         )}
       </AnimatePresence>
 
-      {/* Glass Morphic Header */}
-      <motion.header 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white/5 backdrop-blur-lg shadow-lg sticky top-0 z-50 border-b border-white/10"
-      >
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <motion.div 
-            whileHover={{ scale: 1.05 }}
-            onClick={() => navigate('/')}
-            className="flex items-center cursor-pointer"
-          >
-            <motion.div 
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-              className="w-10 h-10 bg-gradient-to-r from-blue-500 to-orange-500 rounded-lg flex items-center justify-center text-white font-bold text-xl"
-            >
-              P
-            </motion.div>
-            <span className="ml-3 text-xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent">PropLicense</span>
-          </motion.div>
-        </div>
-      </motion.header>
+      <Header showNav={false} showBtn={false}/>
 
-      {/* Main Content */}
+      {/* Main Content - Centered Internet Identity Login */}
       <motion.main 
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -151,196 +105,101 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
         className="flex-grow flex items-center justify-center py-12 px-4 relative z-10"
       >
         <motion.div 
-          whileHover={{ y: -5 }}
-          className="w-full max-w-md bg-white/5 backdrop-blur-md rounded-xl shadow-2xl overflow-hidden border border-white/10 relative"
+          className="w-full max-w-md text-center"
         >
           {/* Decorative elements */}
           <motion.div 
             animate={{
-              x: ['-100%', '100%'],
+              scale: [1, 1.05, 1],
+              opacity: [0.8, 1, 0.8]
             }}
             transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "linear",
+              duration: 4,
+              repeat: Infinity
             }}
-            className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-orange-500/50 to-transparent"
-          />
-          
-          <div className="p-8">
-            {/* Heading with action context */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-center mb-8"
+            className="mx-auto mb-8 w-24 h-24 bg-gradient-to-r from-blue-500/20 to-orange-500/20 rounded-full flex items-center justify-center"
+          >
+            <IconCloudNetwork className="w-12 h-12 text-blue-400" />
+          </motion.div>
+
+          {/* Heading */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="mb-10"
+          >
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent mb-3">
+              {redirectAction === 'register' 
+                ? 'Register Your Digital Property' 
+                : 'Verify Property Ownership'}
+            </h2>
+            <p className="text-gray-300">Securely authenticate with Internet Identity</p>
+          </motion.div>
+
+          {/* Internet Identity Login Button */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <motion.button
+              onClick={handleConnect}
+              disabled={isConnecting}
+              className="mx-auto flex items-center justify-center p-5 rounded-xl hover:shadow-lg transition-all relative overflow-hidden group backdrop-blur-sm border-2 border-blue-400/30"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ 
+                scale: 1.03,
+                boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.3)"
+              }}
+              whileTap={{ scale: 0.98 }}
             >
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent mb-2">
-                {redirectAction === 'register' 
-                  ? 'Register Your Digital Property' 
-                  : 'Verify Property Ownership'}
-              </h2>
-              <p className="text-gray-300">Authenticate to continue</p>
-            </motion.div>
-
-            {/* Tabs with animated underline */}
-            <motion.div className="flex border-b border-white/20 mb-6">
-              {['wallet', 'email'].map((tab) => (
-                <motion.button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-2 font-medium text-sm relative ${
-                    activeTab === tab ? 'text-white' : 'text-gray-400 hover:text-white'
-                  }`}
-                  whileHover={{ scale: 1.03 }}
-                >
-                  {tab === 'wallet' ? 'Web3 Wallets' : 'Email'}
-                  {activeTab === tab && (
-                    <motion.div 
-                      layoutId="authTabUnderline"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-400 to-orange-400"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                </motion.button>
-              ))}
-            </motion.div>
-
-            {/* Wallet Providers */}
-            {activeTab === 'wallet' && (
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-orange-500/10 rounded-xl z-0" />
+              <div className="relative z-10 flex flex-col items-center">
+                <div className={`w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white mb-4`}>
+                  <IconCloudNetwork className="w-8 h-8" />
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-medium text-white">Internet Identity</div>
+                  <div className="text-sm text-gray-300 mt-1">Decentralized authentication</div>
+                </div>
+              </div>
               <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="space-y-4"
-              >
-                {walletProviders.map((provider, index) => (
-                  <motion.button
-                    key={provider.id}
-                    onClick={() => handleConnect(provider.id)}
-                    disabled={isConnecting}
-                    className="w-full flex items-center p-4 border border-white/20 rounded-lg hover:shadow-lg transition-all relative overflow-hidden group backdrop-blur-sm"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 + index * 0.1 }}
-                    whileHover={{ y: -3 }}
-                  >
-                    <div className={`w-10 h-10 bg-gradient-to-r ${provider.color} rounded-full flex items-center justify-center text-white mr-4 z-10`}>
-                      {provider.icon}
-                    </div>
-                    <div className="text-left z-10">
-                      <div className="font-medium text-white">{provider.name}</div>
-                      <div className="text-xs text-gray-400">Secure decentralized login</div>
-                    </div>
-                    <motion.div 
-                      className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-300 z-0"
-                      whileHover={{ opacity: 0.1 }}
-                    />
-                  </motion.button>
-                ))}
+                className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"
+              />
+            </motion.button>
+          </motion.div>
 
+          {/* Connecting Animation */}
+          <AnimatePresence>
+            {isConnecting && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-8 p-4 bg-blue-500/20 rounded-lg flex items-center justify-center backdrop-blur-sm max-w-xs mx-auto"
+              >
                 <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8 }}
-                  className="pt-2 text-center text-sm text-gray-400"
-                >
-                  New to Web3? <button 
-                    onClick={() => setActiveTab('email')}
-                    className="text-blue-400 hover:underline font-medium"
-                  >
-                    Use email instead
-                  </button>
-                </motion.div>
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                  className="rounded-full h-5 w-5 border-2 border-blue-400 border-t-transparent mr-3"
+                />
+                <span className="text-blue-400">Connecting to Internet Identity...</span>
               </motion.div>
             )}
+          </AnimatePresence>
 
-            {/* Email Login */}
-            {activeTab === 'email' && (
-              <motion.form
-                onSubmit={handleEmailSubmit}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="mb-4"
-                >
-                  <label className="block text-sm font-medium text-white mb-1">Email Address</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-white backdrop-blur-sm"
-                    placeholder="your@email.com"
-                    required
-                  />
-                </motion.div>
-                
-                <motion.button 
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-4 rounded-md font-medium transition-all relative overflow-hidden group"
-                  whileHover={{ 
-                    scale: 1.02,
-                    boxShadow: "0 4px 15px -5px rgba(37, 99, 235, 0.5)"
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                >
-                  <span className="relative z-10 flex items-center justify-center">
-                    Send Magic Link
-                    <IconArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </span>
-                  <motion.span 
-                    className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-400 opacity-0"
-                    whileHover={{ opacity: 1 }}
-                  />
-                </motion.button>
-                
-                <motion.p 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8 }}
-                  className="mt-4 text-center text-sm text-gray-400"
-                >
-                  Prefer Web3? <button 
-                    onClick={() => setActiveTab('wallet')}
-                    className="text-blue-400 hover:underline font-medium"
-                  >
-                    Connect wallet instead
-                  </button>
-                </motion.p>
-              </motion.form>
-            )}
-
-            {/* Connecting Animation */}
-            <AnimatePresence>
-              {isConnecting && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mt-6 p-4 bg-blue-500/20 rounded-lg flex items-center backdrop-blur-sm"
-                >
-                  <motion.div 
-                    animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                    className="rounded-full h-5 w-5 border-2 border-blue-400 border-t-transparent mr-3"
-                  />
-                  <span className="text-blue-400">
-                    {activeTab === 'email' 
-                      ? 'Sending magic link...' 
-                      : 'Connecting wallet...'}
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          {/* Additional Info */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="mt-12 text-sm text-gray-400"
+          >
+            <p>Internet Identity provides secure, anonymous authentication</p>
+            <p className="mt-2">No personal information required</p>
+          </motion.div>
         </motion.div>
       </motion.main>
 

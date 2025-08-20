@@ -1,10 +1,17 @@
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from './context/AuthContext';
+//import { useAuth } from './context/AuthContext';
+import { useIIAuth } from './context/InternetIdentityContext';
 import { IconFileText, IconClock, IconShieldCheck, IconArrowRight, IconX } from '@tabler/icons-react';
+import Header from './Header';
+import { getUserAssets } from '../controller/controller.js';
+import { toast } from 'react-hot-toast'
 
 const DashboardPage = () => {
-  const { user, logout } = useAuth();
-  
+  //const { user, logout } = useAuth();
+  const [ assetsCount, setAssetsCount ] = useState(0);
+  const [ registeredAssets, setRegisteredAssets ] = useState([]);
+
   // Mock data - replace with actual API calls
   const registrations = [
     {
@@ -24,6 +31,29 @@ const DashboardPage = () => {
       hash: "0x9f2e...1b4a"
     }
   ];
+
+  useEffect(() => {
+
+    async function getAssetsList() {
+      let userAssets = [];
+
+      try {
+        userAssets = await getUserAssets();
+
+      } catch (error) {
+        console.log('error while getting user assets', error);
+        toast.error('Failed to load assets. Please, refresh the page');
+        return;
+      }
+
+      setRegisteredAssets(userAssets);
+      setAssetsCount(userAssets.length);
+    }
+
+    getAssetsList();
+  }, []);
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-gray-900 to-orange-900 text-white">
@@ -58,43 +88,7 @@ const DashboardPage = () => {
         ))}
       </div>
 
-      {/* Glass Morphic Header */}
-      <motion.header 
-        className="bg-white/5 backdrop-blur-lg shadow-lg sticky top-0 z-50 border-b border-white/10"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <motion.div 
-            whileHover={{ scale: 1.05 }}
-            className="flex items-center cursor-pointer"
-          >
-            <motion.div 
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-              className="w-10 h-10 bg-gradient-to-r from-blue-500 to-orange-500 rounded-lg flex items-center justify-center text-white font-bold text-xl"
-            >
-              P
-            </motion.div>
-            <span className="ml-3 text-xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent">PropLicense</span>
-          </motion.div>
-          
-          <div className="flex items-center space-x-4">
-            <span className="text-sm bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
-              {user?.principal?.slice(0, 8)}...{user?.principal?.slice(-4)}
-            </span>
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={logout}
-              className="text-sm bg-gradient-to-r from-blue-500/70 to-orange-500/70 hover:from-blue-600/70 hover:to-orange-600/70 px-4 py-2 rounded-md transition-all"
-            >
-              Sign Out
-            </motion.button>
-          </div>
-        </div>
-      </motion.header>
+      <Header showNav={false} showBtn={false} showAuth={true}/>
 
       {/* Main Content */}
       <motion.main 
@@ -124,7 +118,7 @@ const DashboardPage = () => {
           />
           
           <h1 className="text-2xl font-bold mb-2">
-            Welcome back, <span className="bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent">User</span>
+            Welcome back
           </h1>
           <p className="text-gray-300">
             Manage your digital property registrations and verifications
@@ -146,7 +140,7 @@ const DashboardPage = () => {
               </div>
               <div>
                 <p className="text-gray-300">Total Registrations</p>
-                <p className="text-2xl font-bold">12</p>
+                <p className="text-2xl font-bold">{assetsCount}</p>
               </div>
             </div>
           </motion.div>
@@ -164,7 +158,7 @@ const DashboardPage = () => {
               </div>
               <div>
                 <p className="text-gray-300">Verified</p>
-                <p className="text-2xl font-bold">8</p>
+                <p className="text-2xl font-bold">{assetsCount}</p>
               </div>
             </div>
           </motion.div>
@@ -182,7 +176,7 @@ const DashboardPage = () => {
               </div>
               <div>
                 <p className="text-gray-300">Pending</p>
-                <p className="text-2xl font-bold">4</p>
+                <p className="text-2xl font-bold">0</p>
               </div>
             </div>
           </motion.div>
@@ -200,26 +194,31 @@ const DashboardPage = () => {
           </div>
 
           <div className="divide-y divide-white/10">
-            {registrations.map((reg) => (
+            {registeredAssets.map((asset) => (
               <motion.div 
-                key={reg.id}
+                key={asset.hash}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.07)' }}
                 className="p-6 flex flex-col md:flex-row md:items-center justify-between"
               >
                 <div className="mb-4 md:mb-0">
-                  <h3 className="font-medium">{reg.title}</h3>
-                  <p className="text-sm text-gray-300">{reg.type} • {reg.date}</p>
+                  <h3 className="font-medium">{asset.details.name}</h3>
+                  <p className="text-sm text-gray-300">{Object.keys(asset.asset_type)[0]} • {asset.created_at}</p>
                 </div>
                 
                 <div className="flex items-center space-x-4">
-                  <span className={`px-3 py-1 rounded-full text-sm backdrop-blur-sm ${
-                    reg.status === 'Verified' 
+                 {/*<span className={`px-3 py-1 rounded-full text-sm backdrop-blur-sm ${
+                  reg.status === 'Verified' 
                       ? 'bg-green-500/20 text-green-400' 
                       : 'bg-orange-500/20 text-orange-400'
+                      'bg-green-500/20 text-green-400' 
                   }`}>
-                    {reg.status}
+                    Verified
+                  </span>*/}
+
+                  <span className={'px-3 py-1 rounded-full text-sm backdrop-blur-sm bg-green-500/20 text-green-400'}>
+                    Verified
                   </span>
                   
                   <motion.button 
@@ -232,7 +231,7 @@ const DashboardPage = () => {
                 </div>
               </motion.div>
             ))}
-          </div>
+          </div> 
         </motion.div>
       </motion.main>
 
@@ -244,7 +243,7 @@ const DashboardPage = () => {
         className="bg-white/5 backdrop-blur-md py-6 border-t border-white/10 text-center text-sm text-gray-400 relative z-10"
       >
         <div className="container mx-auto px-4">
-          © 2023 PropLicense. All rights reserved.
+          © 2025 Verisys. All rights reserved.
         </div>
       </motion.footer>
     </div>

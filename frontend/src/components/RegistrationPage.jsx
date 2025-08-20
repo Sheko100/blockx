@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { processFile } from '../utils';
 import { registerAsset, getAsset } from '../controller/controller.js';
+import { useIIAuth } from './context/InternetIdentityContext';
+import Header from './Header';
 import { 
   IconUpload, 
   IconHome, 
@@ -37,6 +39,8 @@ const RegistrationPage = () => {
   const [minFiles, setMinFiles] = useState(2);
   const [proofFileNames, setProofFileNames] = useState([]);
   const [maxProofFiles, setMaxProofFiles] = useState(2);
+
+  const { principal, login, logout, loading, isAuthenticated } = useIIAuth();
 
   // Form state matching Rust structs
   const [formData, setFormData] = useState({
@@ -263,8 +267,19 @@ const RegistrationPage = () => {
 
   const submitAsset = async () => {
 
+    // if not authenticated user should redirect to internet identity page to login
+    if (isAuthenticated === false) {
+      try {
+        const id = await login();
+      } catch(error) {
+        console.log('Error while logging in;', error);
+        return;
+      }
+    }
+
     try {
       const hash = await registerAsset(formData);
+      console.log("asset hash", hash);
       nextStep();
     } catch (error) {
       console.log('error:', error);
@@ -464,15 +479,6 @@ const RegistrationPage = () => {
                 )
               })}
 
-             <div>
-                <textarea
-                  name="details.extra_metadata"
-                  value={formData.details.extra_metadata}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
-                  placeholder="Additional metadata (optional)"
-                />
-              </div>
             </div>
 
             <div className="flex justify-between mt-8">
@@ -821,37 +827,7 @@ const RegistrationPage = () => {
       </div>
 
       {/* Glass Morphic Header */}
-      <motion.header 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white/5 backdrop-blur-lg shadow-lg sticky top-0 z-50 border-b border-white/10"
-      >
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <motion.div 
-            whileHover={{ scale: 1.05 }}
-            onClick={() => navigate('/')}
-            className="flex items-center cursor-pointer"
-          >
-            <motion.div 
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-              className="w-10 h-10 bg-gradient-to-r from-blue-500 to-orange-500 rounded-lg flex items-center justify-center text-white font-bold text-xl"
-            >
-              P
-            </motion.div>
-            <span className="ml-3 text-xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent">PropLicense</span>
-          </motion.div>
-          
-          <motion.button 
-            onClick={() => navigate('/login')}
-            className="text-blue-400 hover:text-blue-300 font-medium"
-            whileHover={{ scale: 1.05 }}
-          >
-            Already registered? Sign In
-          </motion.button>
-        </div>
-      </motion.header>
+      <Header showNav={false} showBtn={isAuthenticated} showAuth={isAuthenticated === false}/>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12 relative z-10">
