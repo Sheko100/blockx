@@ -95,3 +95,34 @@ function isPlainObj(value) {
     Object.prototype.toString.call(value) === '[object Object]'
   );
 }
+
+export async function hashFiles(filesBuffers) {
+  const fileHashes = [];
+  for (const file of filesBuffers) {
+    console.log('file to be hashed', file);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", file);
+    const bytesArray = Array.from(new Uint8Array(hashBuffer));
+    const hexHash = bytesArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    fileHashes.push(hexHash);
+  }
+
+  return fileHashes;
+}
+
+export function formatTimestamp(nanoTimestamp) {
+  // Convert nanoseconds → milliseconds
+  const millis = Number(BigInt(nanoTimestamp) / 1000000n);
+
+  // Create JS date
+  const date = new Date(millis);
+
+  // Format it nicely (local date & time)
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}

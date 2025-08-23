@@ -10,7 +10,7 @@ DECLARATIONS_PATH := declarations
 
 all: dev deploy-all candid declarations
 
-fresh: dev-fresh deploy-all candid declarations
+fresh: dev-fresh candid deploy-all declarations
 
 dev:
 	dfx start --background || (dfx stop && dfx start --background)

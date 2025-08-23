@@ -1,0 +1,64 @@
+.register-asset-form {
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: #fafafa;
+  font-family: Arial, sans-serif;
+}
+
+.register-asset-form h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.register-asset-form label {
+  display: block;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.register-asset-form input,
+.register-asset-form select {
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.register-asset-form input:focus,
+.register-asset-form select:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.register-asset-form button {
+  padding: 10px 16px;
+  margin: 5px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.register-asset-form button:hover {
+  opacity: 0.9;
+}
+
+.register-asset-form button:first-of-type {
+  background-color: #6c757d;
+  color: white;
+}
+
+.register-asset-form button:last-of-type {
+  background-color: #007bff;
+  color: white;
+}
+
+.register-asset-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

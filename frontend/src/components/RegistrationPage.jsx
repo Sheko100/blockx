@@ -5,6 +5,10 @@ import { processFile } from '../utils';
 import { registerAsset, getAsset } from '../controller/controller.js';
 import { useIIAuth } from './context/InternetIdentityContext';
 import Header from './Header';
+import FileUpload from './ui/FileUpload';
+import { toast } from 'react-hot-toast';
+import CertificatePDF from './CertificatePDF';
+import { pdf } from '@react-pdf/renderer';
 import { 
   IconUpload, 
   IconHome, 
@@ -39,6 +43,8 @@ const RegistrationPage = () => {
   const [minFiles, setMinFiles] = useState(2);
   const [proofFileNames, setProofFileNames] = useState([]);
   const [maxProofFiles, setMaxProofFiles] = useState(2);
+  const [mountedSection, setMountedSection] = useState('asset_type');
+  const [allowSubmit, setAllowSubmit] = useState(false);
 
   const { principal, login, logout, loading, isAuthenticated } = useIIAuth();
 
@@ -63,7 +69,7 @@ const RegistrationPage = () => {
       deed_document: [],
       deed_reference_number: [],
       // for vehicles and intellectual properties
-      registeration_number: [],
+      registration_number: [],
       // for vehicles
       license_plate: [],
       // for physical products
@@ -106,24 +112,24 @@ const RegistrationPage = () => {
         name: '',
         description: '',
         // for real estate
-        address: [],
+        address: '',
         // for vehicles like car, motorcycle, etc...
-        type: [],
+        type: '',
         // for equipmenets
-        manufacturer: [],
+        manufacturer: '',
       },
       ownership_proof: {
         // for real estate
         deed_document: [],
-        deed_reference_number: [],
+        deed_reference_number: '',
         // for vehicles and intellectual properties
-        registeration_number: [],
+        registration_number: '',
         // for vehicles
-        license_plate: [],
+        license_plate: '',
         // for physical products
-        serial_number: [],
+        serial_number: '',
         // for digital assets
-        publication_links: [],
+        publication_links: '',
       },
     }));
     setFileNames([]);
@@ -159,23 +165,17 @@ const RegistrationPage = () => {
     }
   };
 
- /* const handleFileUpload = (e) => {
-    const uploadedFiles = e.target.files;
-    if (uploadedFiles.length > 0) {
-      // In a real app, you would upload the file and get a URL
-      setFormData(prev => ({
-        ...prev,
-        details: {
-          ...prev.details,
-          files: uploadedFiles
-        }
-      }));
-    }
-  };*/
-
   const nextStep = async () => {
     if (currentStep >= steps.length) return;
     if (isAnimating) return;
+
+    const sections = ['asset_type', 'category', 'details', 'ownership_proof'];
+    setMountedSection((prev) => {
+      const index = sections.indexOf(prev);
+      if (index === sections.length - 1) return prev;
+
+      return sections[index+1];
+    });
 
     setIsAnimating(true);
     setTimeout(() => {
@@ -196,6 +196,14 @@ const RegistrationPage = () => {
     if (currentStep <= 1) return;
     if (isAnimating) return;
 
+    const sections = ['asset_type', 'category', 'details', 'ownership_proof'];
+    setMountedSection((prev) => {
+      const index = sections.indexOf(prev);
+      if (index === 0) return prev;
+
+      return sections[index-1];
+    });
+
     setIsAnimating(true);
     setTimeout(() => {
       setCurrentStep(prev => {
@@ -207,68 +215,157 @@ const RegistrationPage = () => {
     }, 500);
   };
 
-  const detailsFiles = () => {
-   const label = formData.category === 'DigitalAsset'
-    ? 'Upload your digital assets files'
-    : 'Upload at least 2 different images of your asset';
+ const restart = () => {
+  setCurrentStep(1);
+  setProgress(0);
+  clearForm();
+  setMountedSection('asset_type');
+ }
 
-    const handleUpload = async (e) => {
-      const newFiles = e.target.files;
-      // here should check that uploaded files count and show a notification if
-      // it exeeds the maximum count
-      for (const file of newFiles) {
-        const processedFile = await processFile(file);
+ const getCategorySpecificFields = () => {
+  switch(formData.category) {
+    case 'RealEstate':
+      return [
+        { name: 'details.address', label: 'Address', icon: <IconId />, type: 'text' },
+      ];
+    case 'Vehicle':
+      return [
+        { name: 'details.type', label: 'Type: car, motorcycle, etc..', icon: <IconId />, type: 'text' },
+      ];
+    case 'Equipment':
+      return [
+        { name: 'details.manufacturer', label: 'Manufacturer', icon: <IconId />, type: 'text' },
+      ];
+  }
+ };
 
-        console.log('processed file', processedFile);
-        setFormData((prev) => ({
-          ...prev,
-          details: {
-            ...prev.details,
-            files: [...prev.details.files, processedFile]
-          }
-        }));
-        setFileNames((prev) => [...prev, file.name]);
+ const getCategorySpecificProofs = () => {
+  switch(formData.category) {
+    case 'RealEstate':
+      return [
+        { name: 'proof.deed_reference_number', label: 'Deed Reference Number', icon: <IconId />, type: 'text' },
+      ];
+    case 'Vehicle':
+      return [
+        { name: 'proof.registration_number', label: 'Registeration Number', icon: <IconId />, type: 'text' },
+        { name: 'proof.license_plate', label: 'License Plate', icon: <IconId />, type: 'text' },                
+      ];
+    case 'ValuableItem':
+      return [
+        { name: 'proof.serial_number', label: 'Serial Number', icon: <IconId />, type: 'text' },
+      ];
+    case 'Equipment':
+      return [
+        { name: 'proof.serial_number', label: 'Serial Number', icon: <IconId />, type: 'text' },
+      ];
+    case 'IntellectualProperty':
+      return [
+        { name: 'proof.registration_number', label: 'Registeration Number', icon: <IconId />, type: 'text' },
+      ];
+    case 'DigitalAsset':
+      return [
+        // should be a list of links instead
+        { name: 'proof.publication_links', label: 'Publication Links: URLs separated by commas ', icon: <IconId />, type: 'text' },
+      ];
+  }
+};
+
+  const submitData = () => {
+    const validate = {
+      details: {
+        name: {
+          regex: /^[a-zA-Z0-9\s\-\.,']{2,100}$/,
+          error: "Name should be 2 - 100 characters and contain only letters, numbers, spaces, and basic punctuation (, - . ')",
+        },
+        description: {
+          regex: /^.{10,1000}$/,
+          error: "Description should be 10 - 1000 characters.",
+        },
+        address: {
+          regex: /^[a-zA-Z0-9\s\-\.,'#]{5,200}$/,
+          error: "Address should be 5 - 200 characters and contain letters, numbers, and symbols (, - . ' #).",
+        },
+        type: {
+          regex: /^[a-zA-Z\s\-]{2,50}$/,
+          error: "Type should be 2 - 50 characters and contain only letters, spaces, and hyphens.",
+        },
+        manufacturer: {
+          regex: /^[a-zA-Z0-9\s\-\.,']{2,100}$/,
+          error: "Manufacturer should be 2 - 100 characters and contain only letters, numbers, and basic punctuation.",
+        },
+      },
+      ownership_proof: {
+        deed_reference_number: {
+          regex: /^[A-Za-z0-9\-\/]{6,20}$/,
+          error: "Deed reference number should be 6–20 characters with letters, numbers, dashes, or slashes. Example: '2023/123456' or 'LR-987654'.",
+        },
+        registration_number: {
+          regex: /^[A-Z0-9\-]{6,15}$/,
+          error: "Registration number should be 6–15 characters with uppercase letters, numbers, or dashes. Example: 'ABC-123456'.",
+        },
+        license_plate: {
+          regex: /^[A-Z0-9\s\-]{5,10}$/,
+          error: "License plate should be 5–10 characters with letters, numbers, or dashes. Example: 'ABC-1234'.",
+        },
+        serial_number: {
+          regex: /^[A-Z0-9\-]{5,30}$/,
+          error: "Serial number should be 5–30 characters with uppercase letters, numbers, or dashes. Example: 'SN-12345-XYZ'.",
+        },
+        publication_links: {
+          regex: /^(https?:\/\/[^\s,\/]+(\.[^\s,\/]+)+(\/[^\s,?#]+.*))(,\s*https?:\/\/[^\s,\/]+(\.[^\s,\/]+)+(\/[^\s,?#]+.*))*$/,
+          error: "Publication links must be valid URLs separated by commas and point to a specific resource (not just a homepage). Example: 'https://example.com/article1, https://example.org/research/paper.pdf'.",
         }
+      },
     };
 
-    return (
-      <div>
-        <label className="block text-sm font-medium text-white mb-2">
-          {label}
-        </label>
-        <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center bg-white/5 backdrop-blur-sm">
-          <IconUpload className="mx-auto text-gray-400 w-12 h-12 mb-4" />
-         {fileNames.map((name, i) => (
-            <p className="text-s text-gray-500" key={i}>
-              {name}
-            </p>
-          ))}
-          <p className="text-lg text-gray-300 mb-2">
-            {formData.details.files.length > 0 ? 'uploaded succesfully!' : 'Drag & drop files here or browse'}
-          </p>
-          <input
-            type="file"
-            onChange={handleUpload}
-            className="hidden"
-            id="file-upload"
-          />
-          <motion.label
-            htmlFor="file-upload"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-blue-400 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-500/40 transition-all"
-          >
-            {formData.details.files.length > 0 ? 'Change File' : 'Select File'}
-          </motion.label>
-        </div>
-      </div>
-    );
+    if (mountedSection === 'details') {
+      // working because every category have only one specfic field so far
+      let specificField = getCategorySpecificFields()
+      const fieldsToValidate = ['name', 'description'];
+
+      if (specificField) fieldsToValidate.push(specificField[0].name.split('.')[1]);
+
+      if (formData.category !== 'IntellectualProperty' && formData.details['files'].length === 0) {
+        toast.error("Please, fill all fields in this section");
+        return;
+      }
+
+      for (const field of fieldsToValidate) {
+        const value = formData.details[field];
+        // checking for emptiness
+        if (value.trim().length === 0) {
+          toast.error("Please, fill all fields in this section");
+          return;
+        }
+        const fieldValidation = validate.details[field];
+        if (fieldValidation.regex.test(value.trim()) === false) {
+          toast.error(fieldValidation.error);
+          return;
+        }
+      }
+
+      nextStep();
+
+    } else if (mountedSection === 'ownership_proof') {
+        const proofFields = getCategorySpecificProofs().map((proof) => proof.name.split('.')[1]);
+        for (const field of proofFields ) {
+          const value = formData.ownership_proof[field];
+          const fieldValidation = validate.ownership_proof[field];
+
+          if (fieldValidation.regex.test(value) === false) {
+            toast.error(fieldValidation.error);
+            return;
+          }
+        }
+
+      submitAsset();
+    }
   }
 
   const submitAsset = async () => {
 
     // if not authenticated user should redirect to internet identity page to login
-    if (isAuthenticated === false) {
+    if (isAuthenticated !== true) {
       try {
         const id = await login();
       } catch(error) {
@@ -282,9 +379,29 @@ const RegistrationPage = () => {
       console.log("asset hash", hash);
       nextStep();
     } catch (error) {
+      if ('AssetAlreadyExists' in error) {
+          toast.error("This asset already registered,");
+      } else {
+        toast.error("Failed to register asset:", error[Object.keys(error)[0]]);
+      }
       console.log('error:', error);
     }
   }
+
+  const downloadCert = async () => {
+    // Create instance of PDF
+    const blob = await pdf(<CertificatePDF asset={formData} />).toBlob();
+
+    // Create download link
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "myfile.pdf";
+    link.click();
+
+    // Clean up
+    URL.revokeObjectURL(url);
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -335,8 +452,8 @@ const RegistrationPage = () => {
                   <IconFileTextShield className="text-purple-400 w-8 h-8" />
                 </div>
                 {/* might need to be changed to non physical Asset*/}
-                <span className="font-medium text-lg">Digital Asset</span>
-                <p className="text-gray-400 text-sm mt-2">NFTs, IP, contracts, digital goods</p>
+                <span className="font-medium text-lg">Non-Physical Asset</span>
+                <p className="text-gray-400 text-sm mt-2">Digital assets, documents, ideas, patents</p>
               </motion.button>
             </div>
           </motion.div>
@@ -350,10 +467,9 @@ const RegistrationPage = () => {
           { value: 'Equipment', label: 'Equipment', icon: <IconTools className="w-5 h-5" />, color: 'from-gray-500 to-blue-500' }
         ];
 
-        const digitalCategories = [
+        const nonPhysicalCategories = [
           { value: 'DigitalAsset', label: 'Digital Asset', icon: <IconFileTextShield className="w-5 h-5" />, color: 'from-blue-500 to-purple-500' },
           { value: 'IntellectualProperty', label: 'Intellectual Property', icon: <IconCopyright className="w-5 h-5" />, color: 'from-amber-500 to-red-500' },
-          { value: 'ContractualRights', label: 'Contractual Rights', icon: <IconBinary className="w-5 h-5" />, color: 'from-green-500 to-teal-500' }
         ];
 
         return (
@@ -367,7 +483,7 @@ const RegistrationPage = () => {
               Select your asset category
             </h2>
             <div className="grid grid-cols-2 gap-4">
-              {(formData.asset_type === 'Physical' ? physicalCategories : digitalCategories).map((item) => (
+              {(formData.asset_type === 'Physical' ? physicalCategories : nonPhysicalCategories).map((item) => (
                 <motion.button
                   key={item.value}
                   type="button"
@@ -402,23 +518,6 @@ const RegistrationPage = () => {
         );
 
       case 3:
-       const getCategorySpecificFields = () => {
-          switch(formData.category) {
-            case 'RealEstate':
-              return [
-                { name: 'details.address', label: 'Address', icon: <IconId />, type: 'text' },
-              ];
-            case 'Vehicle':
-              return [
-                { name: 'details.type', label: 'Type: car, motorcycle, etc..', icon: <IconId />, type: 'text' },
-              ];
-            case 'Equipment':
-              return [
-                { name: 'details.manufacturer', label: 'Manufacturer', icon: <IconId />, type: 'text' },
-              ];
-          }
-        };
-
         return (
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
@@ -432,7 +531,28 @@ const RegistrationPage = () => {
             
             <div className="space-y-4">
 
-             {formData.category === 'IntellectualProperty' || detailsFiles()}
+             {/*{formData.category === 'IntellectualProperty' || detailsFiles()} */}
+
+             { formData.category === 'IntellectualProperty' ||
+              <FileUpload
+                label={formData.category === 'DigitalAsset'
+                  ? "Upload your digital assets files (1 - 10 files)"
+                  : "Upload at least 2 images showing your asset"
+                }
+                minFiles={formData.category === 'DigitalAsset' ? 1 : 2}
+                maxFiles={formData.category === 'DigitalAsset' ? 10 : 5}
+                multiple={true}
+                value={formData.details.files}
+                allTypesSupported={formData.category === 'DigitalAsset' ? true : false}
+                supprtedTypes={formData.category === 'DigitalAssets' ? [] : ['PNG', 'JPEG', 'JPG', 'webP']}
+                onChange={(files) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    details: { ...prev.details, files },
+                  }))
+                }
+              /> 
+             }
 
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -492,11 +612,10 @@ const RegistrationPage = () => {
                 Back
               </motion.button>
               <motion.button
-                onClick={nextStep}
+                onClick={submitData}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium flex items-center"
-                disabled={!formData.details.name || !formData.details.description}
               >
                 Continue
                 <IconArrowRight className="ml-2 w-5 h-5" />
@@ -506,92 +625,6 @@ const RegistrationPage = () => {
         );
 
       case 4:
-        const getCategorySpecificProofs = () => {
-          switch(formData.category) {
-            case 'RealEstate':
-              return [
-                { name: 'proof.deed_reference_number', label: 'Deed Reference Number', icon: <IconId />, type: 'text' },
-              ];
-            case 'Vehicle':
-              return [
-                { name: 'proof.registeration_number', label: 'Registeration Number', icon: <IconId />, type: 'text' },
-                { name: 'proof.license_plate', label: 'License Plate', icon: <IconId />, type: 'text' },                
-              ];
-            case 'ValuableItem':
-              return [
-                { name: 'proof.serial_number', label: 'Serial Number', icon: <IconId />, type: 'text' },
-              ];
-            case 'Equipment':
-              return [
-                { name: 'proof.serial_number', label: 'Serial Number', icon: <IconId />, type: 'text' },
-              ];
-            case 'IntellectualProperty':
-              return [
-                { name: 'proof.registeration_number', label: 'Registeration Number', icon: <IconId />, type: 'text' },
-              ];
-            case 'DigitalAsset':
-              return [
-                // should be a list of links instead
-                { name: 'proof.publication_links', label: 'Publication Links', icon: <IconId />, type: 'text' },
-              ];
-          }
-        };
-
-        {/* need to be modified to show file names, and to prevent uploading more than 2 documents*/}
-        const proofFiles = () => {
-
-          const handleUpload = async (e) => {
-            const newFiles = e.target.files;
-            // here should check that uploaded files count and show a notification if
-            // it exeeds the maximum count
-            for (const file of newFiles) {
-              const processedFile = await processFile(file);
-
-              setFormData((prev) => ({
-                ...prev,
-                ownership_proof: {
-                  ...prev.ownership_proof,
-                  deed_document: [...prev.ownership_proof.deed_document, processedFile]
-                }
-              }));
-              setProofFileNames((prev) => [...prev, file.name]);
-              }
-          };
-
-          return (
-            <div>
-              <label className="block text-sm font-medium text-white mb-2">
-                Upload Deed Document
-              </label>
-              <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center bg-white/5 backdrop-blur-sm">
-                <IconUpload className="mx-auto text-gray-400 w-12 h-12 mb-4" />
-               {proofFileNames.map((name, i) => (
-                  <p className="text-s text-gray-500" key={i}>
-                    {name}
-                  </p>
-                ))}
-                <p className="text-lg text-gray-300 mb-2">
-                  {formData.ownership_proof.deed_document > 0 ? 'uploaded succesfully!' : 'Drag & drop files here or browse'}
-                </p>
-                <input
-                  type="file"
-                  onChange={handleUpload}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <motion.label
-                  htmlFor="file-upload"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-blue-400 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-500/40 transition-all"
-                >
-                  {formData.ownership_proof.deed_document > 0 ? 'Change File' : 'Select File'}
-                </motion.label>
-              </div>
-            </div>
-          );
-        }
-
         return (
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
@@ -599,13 +632,33 @@ const RegistrationPage = () => {
             exit={{ opacity: 0, x: 20 }}
             className="space-y-6"
           >
+              <div style={{backgroundColor: "#309eff1c"}} className="flex items-start px-2 py-3 outline-1 rounded text-xs">
+                <p>
+                  <span className="font-semibold">Optional but recommended:</span> Adding ownership proof
+                  will strengthen your case if someone else claims the ownership of this asset in the future.
+                </p>
+              </div>
             <h2 className="text-2xl font-bold text-white mb-6 text-center">
               Provide ownership proof
             </h2>
             
             <div className="space-y-4">
 
-              { formData.category === 'RealEstate' && proofFiles()}
+              {formData.category === 'RealEstate' &&
+                <FileUpload
+                  label="Upload your deed document"
+                  minFiles={1}
+                  maxFiles={1}
+                  value={formData.ownership_proof.deed_document}
+                  supportedTypes={['PDF', 'DOC', 'DOCX', 'ODT']}
+                  onChange={(deedDoc) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      ownership_proof: { ...prev.ownership_proof, deed_document: deedDoc},
+                    }))
+                  }
+                />
+              }
 
               {getCategorySpecificProofs().map((field) => {
                 return (
@@ -625,33 +678,6 @@ const RegistrationPage = () => {
                 )
               })}
 
-             {/* <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <IconUserCheck className="text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  name="proof.witness"
-                  value={formData.ownership_proof.witness}
-                  onChange={handleInputChange}
-                  className="block w-full pl-10 pr-3 py-3 bg-white/10 border border-white/20 rounded-lg text-white backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Witness Name (if applicable)"
-                />
-              </div>
-
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <IconCalendar className="text-gray-400" />
-                </div>
-                <input
-                  type="date"
-                  name="proof.acquisition_date"
-                  value={formData.ownership_proof.acquisition_date}
-                  onChange={handleInputChange}
-                  className="block w-full pl-10 pr-3 py-3 bg-white/10 border border-white/20 rounded-lg text-white backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Acquisition Date"
-                />
-              </div> */}
             </div>
 
             <div className="flex justify-between mt-8">
@@ -665,7 +691,7 @@ const RegistrationPage = () => {
                 Back
               </motion.button>
               <motion.button
-                onClick={submitAsset}
+                onClick={submitData}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium flex items-center"
@@ -769,7 +795,7 @@ const RegistrationPage = () => {
             
             <div className="flex justify-center gap-4 mt-8">
               <motion.button
-                onClick={() => navigate('/register')}
+                onClick={() => restart()}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="px-6 py-3 border border-white/20 rounded-lg text-white hover:bg-white/10 transition-all flex items-center"
@@ -786,6 +812,30 @@ const RegistrationPage = () => {
                 <IconArrowRight className="ml-2 w-5 h-5" />
               </motion.button>
             </div>
+            <motion.button
+            className="relative bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-lg font-medium transition-all overflow-hidden group"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={downloadCert}
+          >
+            <span className="relative z-10">
+              Download Certificate
+            </span>
+            <motion.span className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            {/* Button shine effect */}
+            <motion.span
+              className="absolute top-0 left-0 w-1/2 h-full bg-white/30 skew-x-[-20deg]"
+              initial={{ x: "-150%" }}
+              animate={{
+                x: ["-150%", "200%"],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatDelay: 3,
+              }}
+            />
+          </motion.button>
           </motion.div>
         );
       default:

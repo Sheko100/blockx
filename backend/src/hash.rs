@@ -26,14 +26,24 @@ pub fn hash_text(data: &str) -> String {
 
 impl Asset {
     pub fn hash_unique_fields(&mut self) {
-        // --- Hash ownership proof ---
 
-        // need to be a list of hashed files
         /*if let Some(doc) = &self.ownership_proof.deed_document {
             if !doc.is_empty() {
                 self.ownership_proof.deed_document = Some(hash_bytes(doc.clone()));
             }
         }*/
+
+        // useless -- already hashed from the frontend
+        /*self.ownership_proof.deed_document = self.ownership_proof.deed_document
+            .iter()
+            .map(|doc| {
+                if !doc.is_empty() {
+                    hash_bytes(doc.clone())
+                } else {
+                    doc.clone()
+                }
+            })
+            .collect();*/
 
         if let Some(ref num) = self.ownership_proof.deed_reference_number {
             if !num.is_empty() {
@@ -41,9 +51,9 @@ impl Asset {
             }
         }
 
-        if let Some(ref reg) = self.ownership_proof.registeration_number {
+        if let Some(ref reg) = self.ownership_proof.registration_number {
             if !reg.is_empty() {
-                self.ownership_proof.registeration_number = Some(hash_text(reg));
+                self.ownership_proof.registration_number = Some(hash_text(reg));
             }
         }
 
@@ -59,17 +69,23 @@ impl Asset {
             }
         }
 
-        // will need to be changed to a list of links
-        if let Some(ref links) = self.ownership_proof.publication_links {
-            if !links.is_empty() {
-                self.ownership_proof.publication_links = Some(hash_text(links));
-            }
-        }
+        self.ownership_proof.publication_links = self.ownership_proof.publication_links
+            .iter()
+            .map(|link| {
+                if !link.is_empty() {
+                    hash_text(link)
+                } else {
+                    link.clone()
+                }
+            })
+            .collect();
 
+        // can be refactored to if conditions
         match self.asset_type {
             AssetType::Physical => {
                 // Images stored in details.files
-                self.details.files = self.details.files
+                // useless -- already hashed from the frontend
+                /*self.details.files = self.details.files
                     .iter()
                     .map(|file| {
                         if !file.is_empty() {
@@ -78,13 +94,14 @@ impl Asset {
                             file.clone()
                         }
                     })
-                    .collect();
+                    .collect();*/
             }
             AssetType::NonPhysical => {
                 match self.category {
                     AssetCategory::DigitalAsset => {
                         // Files (docs, images, etc.)
-                        self.details.files = self.details.files
+                        // useless -- already hashed from the frontend
+                        /*self.details.files = self.details.files
                             .iter()
                             .map(|file| {
                                 if !file.is_empty() {
@@ -93,7 +110,7 @@ impl Asset {
                                     file.clone()
                                 }
                             })
-                            .collect();
+                            .collect();*/
                     }
                     AssetCategory::IntellectualProperty => {
                         if !self.details.description.is_empty() {

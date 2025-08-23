@@ -87,18 +87,18 @@ const styles = StyleSheet.create({
   }
 });
 
-const CertificatePDF = ({ assetId, assetHash, formData, date }) => {
+const CertificatePDF = ({ asset_type, category}) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>PropLicense</Text>
-            <Text style={styles.subtitle}>Digital Asset Certificate</Text>
+            <Text style={styles.title}>Verisys</Text>
+            <Text style={styles.subtitle}>Asset Ownership Certificate</Text>
           </View>
           <View>
-            <Text style={{ fontSize: 12 }}>Certificate ID: {assetId}</Text>
-            <Text style={{ fontSize: 12 }}>Date: {date}</Text>
+          <Text style={{ fontSize: 12 }}>Certificate ID: 0x456456a4sdasda56</Text>
+            <Text style={{ fontSize: 12 }}>Date: Today</Text>
           </View>
         </View>
 
@@ -106,33 +106,33 @@ const CertificatePDF = ({ assetId, assetHash, formData, date }) => {
           <Text style={styles.sectionTitle}>Asset Information</Text>
           <View style={styles.row}>
             <Text style={styles.label}>Asset Type:</Text>
-            <Text style={styles.value}>{formData.asset_type === 'Physical' ? 'Physical Asset' : 'Digital Asset'}</Text>
+            <Text style={styles.value}>{asset_type === 'Physical' ? 'Physical Asset' : 'Non-Physical Asset'}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Category:</Text>
-            <Text style={styles.value}>
-              {formData.category?.replace(/([A-Z])/g, ' $1').trim()}
+            <Text style={styles.label}>Category: {category}</Text>
+           <Text style={styles.value}>
+              {category?.replace(/([A-Z])/g, ' $1').trim()}
             </Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Asset Name:</Text>
-            <Text style={styles.value}>{formData.details.name}</Text>
+            <Text style={styles.value}></Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Description:</Text>
-            <Text style={styles.value}>{formData.details.description}</Text>
+            <Text style={styles.value}></Text>
           </View>
           
           {/* Display category-specific fields */}
-          {formData.category === 'RealEstate' && (
+          {category === 'RealEstate' && (
             <>
               <View style={styles.row}>
                 <Text style={styles.label}>Property Address:</Text>
-                <Text style={styles.value}>{formData.details.address}</Text>
+                <Text style={styles.value}></Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Deed Reference:</Text>
-                <Text style={styles.value}>{formData.ownership_proof.deed_reference}</Text>
+                <Text style={styles.value}>{asset.ownership_proof.deed_reference}</Text>
               </View>
             </>
           )}
@@ -140,26 +140,26 @@ const CertificatePDF = ({ assetId, assetHash, formData, date }) => {
           {/* Add similar conditionals for other categories */}
         </View>
 
-        {formData.details.images.length > 0 && (
+        {/*{asset.details.images.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Asset Images</Text>
             <View style={styles.images}>
-              {formData.details.images.map((img, index) => (
+              {asset.details.images.map((img, index) => (
                 <View key={index} style={styles.imageContainer}>
                   <Image src={URL.createObjectURL(img)} style={styles.image} />
                 </View>
               ))}
             </View>
           </View>
-        )}
+        )}*/}
 
-        <View style={styles.section}>
+       {/* <View style={styles.section}>
           <Text style={styles.sectionTitle}>Blockchain Verification</Text>
           <View style={styles.row}>
             <Text style={styles.label}>Transaction Hash:</Text>
             <Text style={[styles.value, styles.hash]}>{assetHash}</Text>
           </View>
-        </View>
+        </View>*/}
 
         <View style={styles.footer}>
           <Text>This certificate serves as proof of registration on the PropLicense blockchain.</Text>

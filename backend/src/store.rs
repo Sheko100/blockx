@@ -5,6 +5,7 @@ use crate::user::User;
 use crate::asset::{Asset, AssetCategory, AssetIds};
 use candid::Principal;
 use ic_cdk::api::msg_caller;
+use crate::utils::who_am_i;
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -91,7 +92,7 @@ pub fn store_asset(value: Asset, user: Principal) -> Option<u128> {
                         cat_map.insert(value.category.clone(), cat_ids);
 
                         // update user assets
-                        let principal = msg_caller();
+                        let principal = who_am_i();
                         let mut princ_map = princ_to_ids.borrow_mut();
                         let mut princ_ids = princ_map.get(&principal).unwrap_or_else(|| AssetIds(Vec::new()));
                         princ_ids.0.push(curr_count); // store the asset id
@@ -111,6 +112,8 @@ pub fn store_asset(value: Asset, user: Principal) -> Option<u128> {
 
 pub fn retrieve_asset(id: u128) -> Option<Asset> {
     let asset = ASSETS.with(|assets| assets.borrow().get(&id));
+
+    println!("asset {asset:?}");
 
     asset
 }

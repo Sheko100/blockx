@@ -21,5 +21,18 @@ pub fn get_timestamp() -> u128 {
 }
 
 pub fn is_authenticated() -> bool {
-    msg_caller() == Principal::anonymous()
+    who_am_i() != Principal::anonymous()
+}
+
+
+pub fn who_am_i() -> Principal {
+    #[cfg(target_arch = "wasm32")]
+    {
+        msg_caller()
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        Principal::anonymous()
+    }
 }

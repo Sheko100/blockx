@@ -5,12 +5,15 @@ import { useIIAuth } from './context/InternetIdentityContext';
 import { IconFileText, IconClock, IconShieldCheck, IconArrowRight, IconX } from '@tabler/icons-react';
 import Header from './Header';
 import { getUserAssets } from '../controller/controller.js';
-import { toast } from 'react-hot-toast'
+import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { formatTimestamp } from '../utils';
 
 const DashboardPage = () => {
   //const { user, logout } = useAuth();
   const [ assetsCount, setAssetsCount ] = useState(0);
   const [ registeredAssets, setRegisteredAssets ] = useState([]);
+  const navigate = useNavigate();
 
   // Mock data - replace with actual API calls
   const registrations = [
@@ -39,9 +42,8 @@ const DashboardPage = () => {
 
       try {
         userAssets = await getUserAssets();
-
       } catch (error) {
-        console.log('error while getting user assets', error);
+        console.error('Error during getting user assets:', error);
         toast.error('Failed to load assets. Please, refresh the page');
         return;
       }
@@ -189,8 +191,34 @@ const DashboardPage = () => {
           transition={{ delay: 0.6 }}
           className="bg-white/5 backdrop-blur-md rounded-xl shadow-sm overflow-hidden border border-white/10"
         >
-          <div className="p-6 border-b border-white/10">
+          <div className="flex justify-between p-6 border-b border-white/10">
             <h2 className="text-xl font-semibold">Your Registrations</h2>
+
+            <motion.button 
+              onClick={() => navigate('/register')}
+              className="relative bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-xl font-medium overflow-hidden group"
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span className="relative z-10 flex items-center">
+                Add new 
+              </span>
+              <motion.span 
+                className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+              {/* Pulse animation */}
+              <motion.span
+                className="absolute inset-0 rounded-xl border-2 border-orange-400 opacity-0"
+                animate={{
+                  scale: [1, 1.1, 1],
+                  opacity: [0, 0.5, 0]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity
+                }}
+              />
+            </motion.button>
           </div>
 
           <div className="divide-y divide-white/10">
@@ -204,7 +232,7 @@ const DashboardPage = () => {
               >
                 <div className="mb-4 md:mb-0">
                   <h3 className="font-medium">{asset.details.name}</h3>
-                  <p className="text-sm text-gray-300">{Object.keys(asset.asset_type)[0]} • {asset.created_at}</p>
+                  <p className="text-sm text-gray-300">{asset.category} • {formatTimestamp(asset.created_at)}</p>
                 </div>
                 
                 <div className="flex items-center space-x-4">

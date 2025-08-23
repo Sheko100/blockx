@@ -12,7 +12,7 @@ use crate::store::{
 
 };
 use crate::hash::{normalize_str, normalize_opt_str, hash_text};
-use crate::utils::{get_timestamp, is_authenticated};
+use crate::utils::{get_timestamp, is_authenticated, who_am_i};
 use crate::err::{ServiceError, ServiceResult};
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
@@ -52,7 +52,7 @@ impl Storable for AssetCategory {
 
 #[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct AssetDetails {
-    pub files: Vec<Vec<u8>>,
+    pub files: Vec<String>,
     pub name: String,
     pub description: String,
     // for real estate
@@ -67,16 +67,16 @@ pub struct AssetDetails {
 #[derive(CandidType, Deserialize, Clone, Debug)]
 pub struct Proof {
     // for real estate
-    pub deed_document: Option<Vec<u8>>,
+    pub deed_document: Vec<String>,
     pub deed_reference_number: Option<String>,
     // for vehicles and intellectual properties
-    pub registeration_number: Option<String>,
+    pub registration_number: Option<String>,
     // for vehicles
     pub license_plate: Option<String>,
     // for physical products
     pub serial_number: Option<String>,
     // for digital assets
-    pub publication_links: Option<String>,
+    pub publication_links: Vec<String>,
 }
 
 #[derive(CandidType,Deserialize, Clone, Debug)]
@@ -213,17 +213,17 @@ impl Storable for AssetIds {
 #[ic_cdk::update]
 pub fn register_asset(mut asset_data: AssetUserInput) -> ServiceResult<String> {
 
-    if !is_authenticated() {
+    /*if !is_authenticated() {
         return Err(ServiceError::Unauthorized(
             String::from("Only autenticated users can register assets")
         ));
-    }
+    }*/
 
     let normalized_text = normalize_asset_input(&mut asset_data);
     //let asset_hash = hash_text(&normalized_text);
 
     let mut asset = Asset {
-        owner: msg_caller(),
+        owner: who_am_i(),
         asset_type: asset_data.asset_type,
         category: asset_data.category,     // sub-category
         details: asset_data.details,       // structured details
@@ -249,7 +249,7 @@ pub fn register_asset(mut asset_data: AssetUserInput) -> ServiceResult<String> {
     }
 
     let hash = asset.hash.clone();
-    let user = msg_caller();
+    let user = who_am_i();
 
     store_asset(asset, user);
 
@@ -260,7 +260,6 @@ pub fn register_asset(mut asset_data: AssetUserInput) -> ServiceResult<String> {
  * TODO:
  * add guards for key beyond the stored users count
  */
-#[ic_cdk::query]
 pub fn get_asset(id: u128) -> Asset {
     let asset: Asset = retrieve_asset(id).expect("Couldn't retrieve the asset");
 
@@ -276,7 +275,7 @@ pub fn get_assets(ids: Vec<u128>) -> Vec<Asset> {
 
 #[ic_cdk::query]
 pub fn get_user_assets() -> Vec<Asset> {
-    let principal = msg_caller();
+    let principal = who_am_i();
 
     let user_assets_ids = asset_ids_by_principal(&principal);
 
@@ -323,12 +322,17 @@ pub fn is_unique_asset(new_asset: &Asset) -> bool {
 pub fn is_data_unique(new_asset: &Asset, old_asset: &Asset) -> bool {
 
         // should be iteration to check every file
-        if let Some(doc) = &new_asset.ownership_proof.deed_document {
+        /*if let Some(doc) = &new_asset.ownership_proof.deed_document {
             if !doc.is_empty() 
             && new_asset.ownership_proof.deed_document == old_asset.ownership_proof.deed_document {
                 return false;
             }
-        }
+        }*/
+
+        if new_asset.ownership_proof.deed_document.len() > 0
+           && new_asset.ownership_proof.deed_document == old_asset.ownership_proof.deed_document {
+            return false;
+        }     
 
         if let Some(ref num) = new_asset.ownership_proof.deed_reference_number {
             if !num.is_empty()
@@ -337,9 +341,9 @@ pub fn is_data_unique(new_asset: &Asset, old_asset: &Asset) -> bool {
             }
         }
 
-        if let Some(ref reg) = new_asset.ownership_proof.registeration_number {
+        if let Some(ref reg) = new_asset.ownership_proof.registration_number {
             if !reg.is_empty() 
-            && new_asset.ownership_proof.registeration_number == old_asset.ownership_proof.registeration_number {
+            && new_asset.ownership_proof.registration_number == old_asset.ownership_proof.registration_number {
                 return false;
             }
         }
@@ -359,12 +363,17 @@ pub fn is_data_unique(new_asset: &Asset, old_asset: &Asset) -> bool {
         }
 
         // will need to be changed to a list of links
-        if let Some(ref links) = new_asset.ownership_proof.publication_links {
+        /*if let Some(ref links) = new_asset.ownership_proof.publication_links {
             if !links.is_empty() 
             && new_asset.ownership_proof.publication_links == old_asset.ownership_proof.publication_links {
                 return false;
             }
-        }
+        }*/
+
+        if new_asset.ownership_proof.publication_links.len() > 0
+           && new_asset.ownership_proof.publication_links == old_asset.ownership_proof.publication_links {
+            return false;
+        }        
 
         // checking uploaded files
         if new_asset.details.files.len() > 0 && new_asset.details.files == old_asset.details.files {
@@ -390,8 +399,8 @@ pub fn normalize_asset_input(input: &mut AssetUserInput) {
         input.ownership_proof.deed_reference_number.as_ref()
     );
 
-    input.ownership_proof.registeration_number = normalize_opt_str(
-        input.ownership_proof.registeration_number.as_ref()
+    input.ownership_proof.registration_number = normalize_opt_str(
+        input.ownership_proof.registration_number.as_ref()
     );
 
     input.ownership_proof.license_plate = normalize_opt_str(
@@ -404,9 +413,9 @@ pub fn normalize_asset_input(input: &mut AssetUserInput) {
 
     // will need to be a list of links to be prevent the manipulating the order of the links
     // and hacking the proof
-    input.ownership_proof.publication_links = normalize_opt_str(
+    /*input.ownership_proof.publication_links = normalize_opt_str(
         input.ownership_proof.publication_links.as_ref()
-    );
+    );*/
     //let combined_str = concatenate_user_input(input);
     //let combined_str = String::from("hello");
 

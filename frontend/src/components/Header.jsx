@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { IconSquareAsterisk } from '@tabler/icons-react';
 import { useIIAuth } from './context/InternetIdentityContext';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast'
+import { toast } from 'react-hot-toast';
 
 
 const Header = ({showNav=true, showBtn=true, showAuth=false}) => {
