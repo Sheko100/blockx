@@ -8,6 +8,7 @@ import VerifyProperty from './components/dashboard/VerifyProperty'
 import NotFound from './pages/NotFound'
 import RegistrationPage from './components/RegistrationPage';
 import DashboardPage from './components/DashboardPage';
+import About from './components/About';
 
 
 
@@ -23,6 +24,7 @@ export default function AppRoutes() {
           <Route path="register" element={<RegisterProperty />} />
           <Route path="/Verify Existing" element={<VerifyProperty />} />
           <Route index element={<DashboardPage />} />
+          <Route path="/About" element={<About />} />
           {/* Add other dashboard routes here */}
           {/* Example: <Route path="settings" element={<Settings />} /> */}
           <Route path="/verify" element={<VerifyProperty />} />
