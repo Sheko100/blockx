@@ -7,12 +7,15 @@ import {
   IconFileCertificate, 
   IconArrowRight,
   IconInfoCircle,
-  IconX
+  IconX,
+  IconBox,
+  IconDeviceLaptop
 } from '@tabler/icons-react';
 
 const VerifyProperty = () => {
   const navigate = useNavigate();
   const [propertyHash, setPropertyHash] = useState('');
+  const [assetCategory, setAssetCategory] = useState('digital'); // 'digital' or 'physical'
   const [verificationResult, setVerificationResult] = useState(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
@@ -20,17 +23,31 @@ const VerifyProperty = () => {
     e.preventDefault();
     setIsVerifying(true);
     
-    // Simulate verification
+    // Simulate verification with category-specific data
     setTimeout(() => {
       setIsVerifying(false);
-      setVerificationResult({
-        valid: true,
-        title: "Digital Art Collection",
-        owner: "0x8921...f3a7",
-        registered: "2023-06-15",
-        type: "NFT",
-        blockchain: "Ethereum"
-      });
+      
+      if (assetCategory === 'digital') {
+        setVerificationResult({
+          valid: true,
+          title: "Digital Art Collection",
+          owner: "0x8921...f3a7",
+          registered: "2023-06-15",
+          type: "NFT",
+          blockchain: "Ethereum",
+          category: "digital"
+        });
+      } else {
+        setVerificationResult({
+          valid: true,
+          title: "Luxury Apartment",
+          owner: "0x4c8d...e9f2",
+          registered: "2023-08-22",
+          type: "Real Estate",
+          location: "New York, NY",
+          category: "physical"
+        });
+      }
     }, 2000);
   };
 
@@ -140,9 +157,47 @@ const VerifyProperty = () => {
             
             <div className="p-8">
               <form onSubmit={handleVerify}>
+                {/* Asset Category Selection */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-white mb-3">
+                    Asset Category
+                  </label>
+                  <div className="flex space-x-4">
+                    <motion.button
+                      type="button"
+                      onClick={() => setAssetCategory('digital')}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`flex-1 py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-all ${
+                        assetCategory === 'digital' 
+                          ? 'bg-blue-600 text-white shadow-lg' 
+                          : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                      }`}
+                    >
+                      <IconDeviceLaptop className="w-5 h-5 mr-2" />
+                      Digital Asset
+                    </motion.button>
+                    
+                    <motion.button
+                      type="button"
+                      onClick={() => setAssetCategory('physical')}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`flex-1 py-3 px-4 rounded-lg font-medium flex items-center justify-center transition-all ${
+                        assetCategory === 'physical' 
+                          ? 'bg-orange-600 text-white shadow-lg' 
+                          : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                      }`}
+                    >
+                      <IconBox className="w-5 h-5 mr-2" />
+                      Physical Asset
+                    </motion.button>
+                  </div>
+                </div>
+
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-white mb-2">
-                    Property Hash or ID
+                    {assetCategory === 'digital' ? 'Property Hash or ID' : 'Property ID or Serial Number'}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -153,7 +208,7 @@ const VerifyProperty = () => {
                       value={propertyHash}
                       onChange={(e) => setPropertyHash(e.target.value)}
                       className="block w-full pl-10 pr-3 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white backdrop-blur-sm"
-                      placeholder="0x4a3b...8c2d"
+                      placeholder={assetCategory === 'digital' ? "0x4a3b...8c2d" : "PRP-12345-67890"}
                       required
                     />
                   </div>
@@ -208,6 +263,9 @@ const VerifyProperty = () => {
                   <h3 className="text-lg font-semibold text-white flex items-center">
                     <IconShieldCheck className="text-blue-400 mr-2" />
                     Verification Results
+                    <span className="ml-2 text-sm font-normal bg-blue-700/30 px-2 py-1 rounded-md">
+                      {verificationResult.category === 'digital' ? 'Digital Asset' : 'Physical Asset'}
+                    </span>
                   </h3>
                 </div>
 
@@ -237,9 +295,22 @@ const VerifyProperty = () => {
                       <p className="font-medium text-white">{verificationResult.registered}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-400">Asset Type</p>
+                      <p className="text-sm text-gray-400">
+                        {verificationResult.category === 'digital' ? 'Asset Type' : 'Property Type'}
+                      </p>
                       <p className="font-medium text-white">{verificationResult.type}</p>
                     </div>
+                    {verificationResult.category === 'digital' ? (
+                      <div>
+                        <p className="text-sm text-gray-400">Blockchain</p>
+                        <p className="font-medium text-white">{verificationResult.blockchain}</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-sm text-gray-400">Location</p>
+                        <p className="font-medium text-white">{verificationResult.location}</p>
+                      </div>
+                    )}
                   </div>
 
                   {verificationResult.valid && (
