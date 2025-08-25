@@ -9,7 +9,11 @@ import { AuthProvider } from './components/context/AuthContext.jsx';
 import { InternetIdentityProvider } from './components/context/InternetIdentityContext.jsx';
 import VerifyProperty from './components/VerifyProperty';
 import DashboardPage from './components/DashboardPage.jsx';
+import About from './components/About';
+
 import { Toaster } from 'react-hot-toast'
+
+
 
 /*ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -31,6 +35,7 @@ function App() {
             <Route path="/dashboard" element={<ProtectedRoute children={<DashboardPage />} />} />
             <Route path="/register" element={<RegistrationPage />} />
             <Route path="/verify" element={<VerifyProperty />} />
+             <Route path="/about" element={<About />} />
           </Routes>
       </AuthProvider>
     </InternetIdentityProvider>
