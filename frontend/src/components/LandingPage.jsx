@@ -8,25 +8,34 @@ import { useNavigate } from 'react-router-dom';
 const LandingPage = ({ connectWallet }) => {
   const [currentFeature, setCurrentFeature] = useState(0);
   const [isHoveringCert, setIsHoveringCert] = useState(false);
+  const [currentAssetType, setCurrentAssetType] = useState(0);
   const navigate = useNavigate();
   
   useEffect(() => {
-    const interval = setInterval(() => {
+    const featureInterval = setInterval(() => {
       setCurrentFeature((prev) => (prev + 1) % 3);
     }, 5000);
-    return () => clearInterval(interval);
+    
+    const assetTypeInterval = setInterval(() => {
+      setCurrentAssetType((prev) => (prev + 1) % 2);
+    }, 3000);
+    
+    return () => {
+      clearInterval(featureInterval);
+      clearInterval(assetTypeInterval);
+    };
   }, []);
 
   const features = [
     {
       icon: <IconShieldLock className="w-10 h-10 text-blue-500" />,
       title: "Immutable Registration",
-      description: "Once registered, your digital property record cannot be altered or deleted."
+      description: "Once registered, your digital asset record cannot be altered or deleted."
     },
     {
       icon: <IconFileUpload className="w-10 h-10 text-orange-500" />,
       title: "Instant Verification",
-      description: "Anyone can instantly verify the authenticity of your licensed properties."
+      description: "Anyone can instantly verify the authenticity of your licensed assets."
     },
     {
       icon: <IconTopologyStarRing3 className="w-10 h-10 text-blue-500" />,
@@ -34,6 +43,8 @@ const LandingPage = ({ connectWallet }) => {
       description: "You maintain full ownership and control with no central authority."
     }
   ];
+
+  const assetTypes = ["Digital", "Physical"];
 
   return (
     <div className="min-h-screen text-white relative overflow-hidden">
@@ -112,16 +123,38 @@ const LandingPage = ({ connectWallet }) => {
             transition={{ duration: 0.8 }}
             className="md:w-1/2 mb-16 md:mb-0"
           >
-            <motion.h1 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-5xl md:text-6xl font-bold mb-6 leading-tight"
+           <motion.div 
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ delay: 0.2 }}
+  className="text-5xl md:text-6xl font-bold mb-6"
+>
+  <div className="bg-gradient-to-r from-blue-400 via-white to-orange-400 bg-clip-text text-transparent">
+    <div className="flex flex-col">
+      <div className="flex items-baseline justify-start">
+        <span className="mr-2">License Your</span>
+        <div className="relative w-36 h-16 overflow-visible">
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={currentAssetType}
+              initial={{ rotateX: 90, opacity: 0, y: 5 }}
+              animate={{ rotateX: 0, opacity: 1, y: 2 }}
+              exit={{ rotateX: -90, opacity: 0, y: -5 }}
+              transition={{ duration: 0.6 }}
+              className="absolute inset-0 flex items-center justify-center ml-20 mt-5"
+              style={{ 
+                color: '#F97316' // Orange color (Tailwind's orange-500)
+              }}
             >
-              <span className="bg-gradient-to-r from-blue-400 via-white to-orange-400 bg-clip-text text-transparent">
-                License Your Digital Properties
-              </span>
-            </motion.h1>
+              {assetTypes[currentAssetType]}
+            </motion.span>
+          </AnimatePresence>
+        </div>
+      </div>
+      <span className="mt-2">Assets</span>
+    </div>
+  </div>
+</motion.div>
             
             <motion.p 
               initial={{ opacity: 0 }}
@@ -129,7 +162,7 @@ const LandingPage = ({ connectWallet }) => {
               transition={{ delay: 0.4 }}
               className="text-xl text-gray-300 mb-8"
             >
-              The decentralized solution for authenticating and managing your digital assets on the blockchain.
+              The decentralized solution for authenticating and managing your assets on the blockchain.
             </motion.p>
             
             <motion.div 
@@ -145,7 +178,7 @@ const LandingPage = ({ connectWallet }) => {
                 whileTap={{ scale: 0.98 }}
               >
                 <span className="relative z-10 flex items-center">
-                  Register New Property 
+                  Register New Asset
                   <IconArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </span>
                 <motion.span 
@@ -230,7 +263,6 @@ const LandingPage = ({ connectWallet }) => {
                 }}
                 transition={{
                   duration: 0.5,
-                  //type: "spring"
                 }}
                 className="relative bg-gray-800/50 backdrop-blur-md p-8 rounded-2xl shadow-2xl border border-gray-700/50 overflow-hidden"
               >
@@ -252,7 +284,7 @@ const LandingPage = ({ connectWallet }) => {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center">
                     <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                    <div className="text-sm text-gray-400">Digital License Certificate</div>
+                    <div className="text-sm text-gray-400">Asset License Certificate</div>
                   </div>
                   <div className="text-xs text-gray-500">Blockchain Verified</div>
                 </div>
@@ -274,8 +306,6 @@ const LandingPage = ({ connectWallet }) => {
                     <IconCertificate className="w-40 h-40 text-white/10" />
                   </motion.div>
                   
-                  
-                  
                   {/* Certificate body */}
                   <div className="bg-gray-700/30 backdrop-blur-sm rounded-xl p-6 mb-6 border border-gray-700/30">
                     <div className="flex justify-center mb-6">
@@ -284,14 +314,14 @@ const LandingPage = ({ connectWallet }) => {
                     
                     <div className="text-center mb-8">
                       <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent mb-2">
-                        PROPERTY LICENSE
+                        ASSET LICENSE
                       </h3>
                       <p className="text-gray-400 text-sm">Certificate of Authenticity</p>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 mb-6">
                       <div>
-                        <p className="text-gray-500 text-xs">Property ID</p>
+                        <p className="text-gray-500 text-xs">Asset ID</p>
                         <p className="text-gray-300 font-mono">0x7f5e...d3a4</p>
                       </div>
                       <div>
@@ -355,7 +385,7 @@ const LandingPage = ({ connectWallet }) => {
               Key Features
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Revolutionizing digital property management with blockchain technology
+              Revolutionizing asset management with blockchain technology
             </p>
           </motion.div>
           
@@ -473,7 +503,7 @@ const LandingPage = ({ connectWallet }) => {
               How It Works
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Simple steps to secure your digital properties
+              Simple steps to secure your assets
             </p>
           </motion.div>
           
@@ -486,13 +516,13 @@ const LandingPage = ({ connectWallet }) => {
               },
               {
                 step: "2",
-                title: "Register Your Property",
+                title: "Register Your Asset",
                 description: "Upload your digital file or enter details to generate a unique blockchain record."
               },
               {
                 step: "3",
                 title: "Share Verifiable Licenses",
-                description: "Provide the hash to anyone who needs to verify your digital property license."
+                description: "Provide the hash to anyone who needs to verify your asset license."
               }
             ].map((item, index) => (
               <motion.div
@@ -579,7 +609,7 @@ const LandingPage = ({ connectWallet }) => {
             }}
             className="text-4xl font-bold mb-8"
           >
-            Ready to Secure Your Digital Properties?
+            Ready to Secure Your Assets?
           </motion.h2>
           
           <motion.div className="flex justify-center">
@@ -670,7 +700,7 @@ const LandingPage = ({ connectWallet }) => {
                 </div>
                 <span className="ml-3 text-xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent">PropLicense</span>
               </motion.div>
-              <p className="text-gray-400">Secure digital property licensing on the blockchain.</p>
+              <p className="text-gray-400">Secure asset licensing on the blockchain.</p>
             </div>
             
             <div>
