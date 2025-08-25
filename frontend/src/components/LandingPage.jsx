@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
-import { IconFileUpload, IconTopologyStarRing3, IconShieldLock, IconCertificate, IconArrowRight, IconBrandTwitter, IconBrandDiscord, IconBrandTelegram, IconBrandMedium } from '@tabler/icons-react';
+import { IconFileUpload, IconTopologyStarRing3, IconShieldLock, IconCertificate, IconArrowRight, IconBrandTwitter, IconBrandDiscord, IconBrandTelegram, IconBrandMedium, IconX, IconMessage, IconSend, IconArrowBack } from '@tabler/icons-react';
 import { motion, AnimatePresence } from 'framer-motion'; 
 import Header from './Header';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,10 @@ const LandingPage = ({ connectWallet }) => {
   const [currentFeature, setCurrentFeature] = useState(0);
   const [isHoveringCert, setIsHoveringCert] = useState(false);
   const [currentAssetType, setCurrentAssetType] = useState(0);
+  const [showChatbot, setShowChatbot] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [showInitialSuggestions, setShowInitialSuggestions] = useState(true);
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -20,9 +24,15 @@ const LandingPage = ({ connectWallet }) => {
       setCurrentAssetType((prev) => (prev + 1) % 2);
     }, 3000);
     
+    // Show chatbot popup after 2 seconds
+    const chatbotTimer = setTimeout(() => {
+      setShowChatbot(true);
+    }, 2000);
+    
     return () => {
       clearInterval(featureInterval);
       clearInterval(assetTypeInterval);
+      clearTimeout(chatbotTimer);
     };
   }, []);
 
@@ -45,6 +55,94 @@ const LandingPage = ({ connectWallet }) => {
   ];
 
   const assetTypes = ["Digital", "Physical"];
+
+  // Suggested responses for the chatbot
+  const initialSuggestedResponses = [
+    "How do I register an asset?",
+    "What types of assets can I license?",
+    "How does verification work?",
+    "What blockchain do you use?",
+    "Is there a fee for registration?",
+    "How secure is this platform?"
+  ];
+
+  const followUpSuggestedResponses = [
+    "Tell me more about digital assets",
+    "What about physical assets?",
+    "How long does verification take?",
+    "Can I transfer my license?",
+    "What wallets are supported?",
+    "Go back to main questions"
+  ];
+
+  // Handle sending a message
+  const handleSendMessage = (message) => {
+    const newMessage = { text: message, sender: 'user' };
+    setChatMessages([...chatMessages, newMessage]);
+    setShowInitialSuggestions(false);
+    
+    // Simulate bot response after a short delay
+    setTimeout(() => {
+      let response = "";
+      let followUp = false;
+      
+      if (message.includes("register")) {
+        response = "To register an asset, click on the 'Register New Asset' button and follow the steps to upload your asset details to the blockchain. You'll need to provide details about your asset and pay a small gas fee for the transaction.";
+        followUp = true;
+      } else if (message.includes("type") || message.includes("kind")) {
+        response = "You can license both digital assets (NFTs, digital art, documents, software) and physical assets (real estate, collectibles, luxury goods, intellectual property). Each type has specific verification processes.";
+        followUp = true;
+      } else if (message.includes("verification") || message.includes("verify")) {
+        response = "Verification is done through our blockchain-based system. Each asset receives a unique hash that is stored on the blockchain. Anyone can verify an asset's authenticity using the verification page by entering the asset's hash or scanning its QR code.";
+        followUp = true;
+      } else if (message.includes("blockchain") || message.includes("network")) {
+        response = "We use a multi-chain approach with Ethereum, Internet Computer, Polygon, and other compatible blockchains for maximum flexibility and security. This ensures low fees and fast transactions regardless of network congestion.";
+        followUp = true;
+      } else if (message.includes("fee") || message.includes("cost") || message.includes("price")) {
+        response = "There's a small gas fee for blockchain transactions, which varies based on network congestion. We don't charge additional platform fees for basic registration and verification. Premium features may have associated costs.";
+        followUp = true;
+      } else if (message.includes("secure") || message.includes("security") || message.includes("safe")) {
+        response = "Our platform uses military-grade encryption and blockchain technology to ensure maximum security. Your assets are stored on decentralized networks, making them tamper-proof and immutable. We never store your private keys.";
+        followUp = true;
+      } else if (message.includes("digital asset")) {
+        response = "Digital assets include NFTs, digital art, documents, certificates, software licenses, and any other digital content. Each receives a unique blockchain hash that serves as proof of ownership and authenticity.";
+        followUp = true;
+      } else if (message.includes("physical asset")) {
+        response = "Physical assets like real estate, collectibles, luxury goods, and equipment can be registered by uploading documentation and photos. Each physical asset receives a unique QR code that can be scanned for verification.";
+        followUp = true;
+      } else if (message.includes("transfer") || message.includes("sell")) {
+        response = "Yes, you can transfer licenses to other users. This generates a new transaction on the blockchain, updating ownership records. There may be gas fees associated with transfer operations.";
+        followUp = true;
+      } else if (message.includes("wallet")) {
+        response = "We support all major Web3 wallets including MetaMask, WalletConnect, Coinbase Wallet, and more. For Internet Computer, we support Plug, Stoic, and Internet Identity.";
+        followUp = true;
+      } else if (message.includes("back") || message.includes("main")) {
+        response = "Sure! What would you like to know about our platform?";
+        setShowInitialSuggestions(true);
+      } else {
+        response = "I'm here to help with any questions about asset licensing and verification. How can I assist you today?";
+        followUp = true;
+      }
+      
+      setChatMessages(prev => [...prev, { text: response, sender: 'bot' }]);
+      
+      // Show follow-up questions if appropriate
+      if (followUp && !message.includes("back")) {
+        setTimeout(() => {
+          setChatMessages(prev => [...prev, { 
+            text: "Is there anything else you'd like to know?", 
+            sender: 'bot',
+            isPrompt: true 
+          }]);
+        }, 500);
+      }
+    }, 1000);
+  };
+
+  const handleGoBackToSuggestions = () => {
+    setChatMessages([]);
+    setShowInitialSuggestions(true);
+  };
 
   return (
     <div className="min-h-screen text-white relative overflow-hidden">
@@ -114,6 +212,170 @@ const LandingPage = ({ connectWallet }) => {
 
       <Header />
 
+      {/* Chatbot Popup */}
+      <AnimatePresence>
+        {showChatbot && !isChatOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", damping: 15 }}
+            className="fixed bottom-6 right-6 z-50 cursor-pointer"
+            onClick={() => setIsChatOpen(true)}
+          >
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-gradient-to-r from-blue-600 to-orange-600 p-4 rounded-full shadow-2xl flex items-center justify-center"
+            >
+              <IconMessage className="w-8 h-8 text-white" />
+            </motion.div>
+            
+            {/* Pulsing effect */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-blue-400 to-orange-400 rounded-full"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.5, 0, 0.5],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Chat Window */}
+      <AnimatePresence>
+        {isChatOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ type: "spring", damping: 15 }}
+            className="fixed bottom-20 right-6 w-96 h-[500px] z-50 bg-gray-800/70 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-700/30 overflow-hidden flex flex-col"
+          >
+            {/* Chat header */}
+            <div className="bg-gradient-to-r from-blue-600/90 to-orange-600/90 p-4 flex justify-between items-center">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
+                <span className="font-semibold">Verisys Assistant</span>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => {
+                  setIsChatOpen(false);
+                  setShowChatbot(false);
+                }}
+                className="text-white/80 hover:text-white"
+              >
+                <IconX className="w-5 h-5" />
+              </motion.button>
+            </div>
+            
+            {/* Chat messages */}
+            <div className="flex-1 p-4 overflow-y-auto">
+              {chatMessages.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-8"
+                >
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <IconMessage className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <p className="text-gray-300">Hello! I'm your Verisys assistant. How can I help you today?</p>
+                </motion.div>
+              ) : (
+                <div className="space-y-4">
+                  {chatMessages.map((message, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-xs p-3 rounded-2xl ${
+                          message.sender === 'user'
+                            ? 'bg-blue-600/90 text-white'
+                            : 'bg-gray-700/50 text-gray-200'
+                        }`}
+                      >
+                        {message.text}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Suggested responses */}
+            <div className="px-4 pb-3">
+              {showInitialSuggestions && chatMessages.length === 0 && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <p className="text-xs text-gray-400 mb-2">Suggested questions:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {initialSuggestedResponses.map((response, index) => (
+                      <motion.button
+                        key={index}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleSendMessage(response)}
+                        className="text-xs bg-gray-700/40 hover:bg-gray-700/70 text-gray-300 p-2 rounded-lg text-left transition-colors"
+                      >
+                        {response}
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+              
+              {!showInitialSuggestions && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-xs text-gray-400">More questions:</p>
+                    <motion.button
+                      onClick={handleGoBackToSuggestions}
+                      whileHover={{ scale: 1.05 }}
+                      className="text-xs text-blue-400 flex items-center"
+                    >
+                      <IconArrowBack size={14} className="mr-1" />
+                      Back to main
+                    </motion.button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {followUpSuggestedResponses.map((response, index) => (
+                      <motion.button
+                        key={index}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleSendMessage(response)}
+                        className="text-xs bg-gray-700/40 hover:bg-gray-700/70 text-gray-300 p-2 rounded-lg text-left transition-colors"
+                      >
+                        {response}
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Rest of the landing page code remains exactly the same */}
       {/* Hero Section */}
       <section className="relative py-32 overflow-hidden">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center relative z-10">
@@ -698,7 +960,7 @@ const LandingPage = ({ connectWallet }) => {
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-orange-500 rounded-lg flex items-center justify-center text-white font-bold text-xl">
                   P
                 </div>
-                <span className="ml-3 text-xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent">PropLicense</span>
+                <span className="ml-3 text-xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent">Verisys</span>
               </motion.div>
               <p className="text-gray-400">Secure asset licensing on the blockchain.</p>
             </div>
@@ -706,6 +968,7 @@ const LandingPage = ({ connectWallet }) => {
             <div>
               <h4 className="font-semibold text-lg mb-6">Navigation</h4>
               <ul className="space-y-3">
+                
                 {['Features', 'How It Works', 'About', 'Contact'].map((item) => (
                   <li key={item}>
                     <motion.a 
@@ -763,7 +1026,7 @@ const LandingPage = ({ connectWallet }) => {
           </div>
           
           <div className="border-t border-gray-800 pt-8 text-center text-gray-500">
-            <p>© {new Date().getFullYear()} PropLicense. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Verisys. All rights reserved.</p>
           </div>
         </div>
       </footer>
