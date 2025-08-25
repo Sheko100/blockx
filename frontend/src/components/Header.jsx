@@ -2,13 +2,14 @@ import { motion } from "framer-motion";
 import { useState } from 'react';
 import { IconSquareAsterisk } from '@tabler/icons-react';
 import { useIIAuth } from './context/InternetIdentityContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
 
 const Header = ({showNav=true, showBtn=true, showAuth=false}) => {
   const { principal, isAuthenticated, logout } = useIIAuth();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -46,6 +47,10 @@ const Header = ({showNav=true, showBtn=true, showAuth=false}) => {
       );
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
 	return (
 	  <motion.header
 	    initial={{ opacity: 0, y: -20 }}
@@ -73,23 +78,48 @@ const Header = ({showNav=true, showBtn=true, showAuth=false}) => {
 
 	      {showNav && (
 	        <nav className="hidden md:flex space-x-8">
-	          {["Features", "How It Works", "About"].map((item) => (
-	            <motion.a
-	              key={item}
-	              href={`#${item.toLowerCase().replace(/ /g, "-")}`}
-	              className="text-gray-300 hover:text-white relative group"
-	              whileHover={{ scale: 1.05 }}
-	            >
-	              {item}
-	              <motion.span
-	                className="absolute left-0 bottom-0 h-0.5 bg-gradient-to-r from-blue-400 to-orange-400 w-0"
-	                whileHover={{ width: "100%" }}
-	                transition={{ duration: 0.3 }}
-	              />
-	            </motion.a>
-	          ))}
+	          <Link to="/#features" className="text-gray-300 hover:text-white relative group">
+	            Features
+	            <motion.span
+	              className="absolute left-0 bottom-0 h-0.5 bg-gradient-to-r from-blue-400 to-orange-400 w-0"
+	              whileHover={{ width: "100%" }}
+	              transition={{ duration: 0.3 }}
+	            />
+	          </Link>
+	          <Link to="/#how-it-works" className="text-gray-300 hover:text-white relative group">
+	            How It Works
+	            <motion.span
+	              className="absolute left-0 bottom-0 h-0.5 bg-gradient-to-r from-blue-400 to-orange-400 w-0"
+	              whileHover={{ width: "100%" }}
+	              transition={{ duration: 0.3 }}
+	            />
+	          </Link>
+	          <Link to="/about" className="text-gray-300 hover:text-white relative group">
+	            About
+	            <motion.span
+	              className="absolute left-0 bottom-0 h-0.5 bg-gradient-to-r from-blue-400 to-orange-400 w-0"
+	              whileHover={{ width: "100%" }}
+	              transition={{ duration: 0.3 }}
+	            />
+	          </Link>
 	        </nav>
 	      )}
+
+        {/* Mobile menu button */}
+        {showNav && (
+          <button 
+            className="md:hidden text-gray-300 hover:text-white"
+            onClick={toggleMobileMenu}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {isMobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        )}
 
 	      {showBtn && (
 	        <motion.button
@@ -102,7 +132,6 @@ const Header = ({showNav=true, showBtn=true, showAuth=false}) => {
 	            {isAuthenticated ? "Dashboard" : "Connect"}
 	          </span>
 	          <motion.span className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-	          {/* Button shine effect */}
 	          <motion.span
 	            className="absolute top-0 left-0 w-1/2 h-full bg-white/30 skew-x-[-20deg]"
 	            initial={{ x: "-150%" }}
@@ -121,9 +150,43 @@ const Header = ({showNav=true, showBtn=true, showAuth=false}) => {
         { showAuth && authBtn()}
 
 	    </div>
+
+      {/* Mobile menu */}
+      {showNav && isMobileMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          className="md:hidden bg-gray-800/95 backdrop-blur-md border-t border-white/10"
+        >
+          <div className="container mx-auto px-4 py-4 space-y-4">
+            <Link 
+              to="/#features" 
+              className="block text-gray-300 hover:text-white py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Features
+            </Link>
+            <Link 
+              to="/#how-it-works" 
+              className="block text-gray-300 hover:text-white py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              How It Works
+            </Link>
+            <Link 
+              to="/about" 
+              className="block text-gray-300 hover:text-white py-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              About
+            </Link>
+          </div>
+        </motion.div>
+      )}
 	  </motion.header>
 	);
-
 }
 
 export default Header;
