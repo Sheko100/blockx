@@ -411,6 +411,10 @@ pub fn normalize_asset_input(input: &mut AssetUserInput) {
         input.ownership_proof.serial_number.as_ref()
     );
 
+    if input.category == AssetCategory::IntellectualProperty {
+        input.details.description = normalize_str(&input.details.description);
+    }
+
     // will need to be a list of links to be prevent the manipulating the order of the links
     // and hacking the proof
     /*input.ownership_proof.publication_links = normalize_opt_str(
@@ -436,3 +440,24 @@ pub fn normalize_asset_input(input: &mut AssetUserInput) {
 
     combined
 }*/
+
+/**
+ * should not be used for checking asset uniqueness as it does shallow checking
+ * 
+ * Checks if the asset exists by its hash
+ */
+#[ic_cdk::query]
+pub fn verify_asset(hash: String, category: AssetCategory) -> bool {
+    let mut is_verified = false;
+    let asset_ids: Vec<u128> = asset_ids_by_category(&category);
+    let assets = get_assets(asset_ids);
+
+    for asset in assets {
+        if hash == asset.hash {
+            is_verified = true;
+            break;
+        }
+    }
+
+    is_verified
+}

@@ -54,4 +54,10 @@ service : {
   get_user : (nat) -> (User) query;
   get_user_assets : () -> (vec Asset) query;
   register_asset : (AssetUserInput) -> (Result);
+  // 
+  // * should not be used for checking asset uniqueness as it does shallow checking
+  // *
+  // * Checks if the asset exists by its hash
+  // 
+  verify_asset : (text, AssetCategory) -> (bool) query;
 }

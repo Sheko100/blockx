@@ -27,24 +27,6 @@ pub fn hash_text(data: &str) -> String {
 impl Asset {
     pub fn hash_unique_fields(&mut self) {
 
-        /*if let Some(doc) = &self.ownership_proof.deed_document {
-            if !doc.is_empty() {
-                self.ownership_proof.deed_document = Some(hash_bytes(doc.clone()));
-            }
-        }*/
-
-        // useless -- already hashed from the frontend
-        /*self.ownership_proof.deed_document = self.ownership_proof.deed_document
-            .iter()
-            .map(|doc| {
-                if !doc.is_empty() {
-                    hash_bytes(doc.clone())
-                } else {
-                    doc.clone()
-                }
-            })
-            .collect();*/
-
         if let Some(ref num) = self.ownership_proof.deed_reference_number {
             if !num.is_empty() {
                 self.ownership_proof.deed_reference_number = Some(hash_text(num));

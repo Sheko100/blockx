@@ -17,6 +17,7 @@ use crate::asset::{
     register_asset,
     get_asset,
     get_assets_count,
+    verify_asset,
 };
 
 #[cfg(test)]
@@ -141,49 +142,99 @@ mod tests {
         //assert!(match!(second,result, Err(ServiceError::AssetAlreadyExists)));
     }
 
-    /*#[test]
-    fn test_hashing_files() {
-        let realEstate_details = AssetDetails {
-            files: vec![[1, 100, 160].to_vec(), [2, 240, 233].to_vec(), [5, 4].to_vec()],
-            name: String::from("My House"),
-            description: String::from("Medium house"),
+    #[test]
+    fn test_register_same_intellectual_property() {
+        let intellectual_details = AssetDetails {
+            files: vec![],
+            name: String::from("My idea"),
+            description: String::from("The newest idea ever"),
             r#type: None,
-            address: Some(String::from("baker street")),
+            address: None,
             manufacturer: None,
         };
-        let realEstate_proof = Proof {
-            deed_document: vec![[1, 100, 200].to_vec()],
-            deed_reference_number: Some(String::from("ABC-54556-AD465")),
+        let intellectual2_details = AssetDetails {
+            files: vec![],
+            name: String::from("My idea"),
+            description: String::from("The NEWeSt       idEA ever   "),
+            r#type: None,
+            address: None,
+            manufacturer: None,
+        };
+        let intellectual_proof = Proof {
+            deed_document: Vec::new(),
+            deed_reference_number: None,
             registration_number: None,
             license_plate: None,
             serial_number: None,
             publication_links: Vec::new(),
         };
-        let user_input_data = AssetUserInput {
-            asset_type: AssetType::Physical,
-            category: AssetCategory::RealEstate,
-            details: realEstate_details,
-            ownership_proof: realEstate_proof,
+        let intellectual_input_data = AssetUserInput {
+            asset_type: AssetType::NonPhysical,
+            category: AssetCategory::IntellectualProperty,
+            details: intellectual_details.clone(),
+            ownership_proof: intellectual_proof.clone(),
+
         };
 
-        let new_asset = register_asset(user_input_data);
+        let intellectual2_input_data = AssetUserInput {
+            asset_type: AssetType::NonPhysical,
+            category: AssetCategory::IntellectualProperty,
+            details: intellectual2_details,
+            ownership_proof: intellectual_proof,
+        };
 
-        let asset = get_asset(0);
+        let first_result = register_asset(intellectual_input_data);
 
-        let files = vec![[1, 100, 160].to_vec(), [2, 240, 233].to_vec(), [5, 4].to_vec()];
-        let file1 = hash_bytes(files[0].clone());
-        let file2 = hash_bytes(files[1].clone());
-        let file3 = hash_bytes(files[2].clone());
+        // count after first successful register
+        let curr_count = get_assets_count(None);
+        let curr_category_count = get_assets_count(Some(AssetCategory::IntellectualProperty));
 
-        let deed_doc = vec![[1, 100, 200].to_vec()];
-        let hashed_doc = hash_bytes(deed_doc[0].clone());
+        let second_result = register_asset(intellectual2_input_data);
 
-        assert_eq!(asset.details.files[0], file1);
-        assert_eq!(asset.details.files[1], file2);
-        assert_eq!(asset.details.files[2], file3);
-        assert_eq!(asset.ownership_proof.deed_document[0], hashed_doc);
-    }*/
+        // count after second register which should be failed
+        let new_count = get_assets_count(None);
+        let new_category_count = get_assets_count(Some(AssetCategory::IntellectualProperty));
 
+        // count should not be increased as second register has failed like expected
+        assert_eq!(new_count, curr_count);
+        assert_eq!(new_category_count, curr_category_count);
+    }
+
+    #[test]
+    fn test_verify_asset() {
+        let intellectual_details = AssetDetails {
+            files: vec![],
+            name: String::from("My idea"),
+            description: String::from("The newest idea ever"),
+            r#type: None,
+            address: None,
+            manufacturer: None,
+        };
+        let intellectual_proof = Proof {
+            deed_document: Vec::new(),
+            deed_reference_number: None,
+            registration_number: None,
+            license_plate: None,
+            serial_number: None,
+            publication_links: Vec::new(),
+        };
+        let intellectual_input_data = AssetUserInput {
+            asset_type: AssetType::NonPhysical,
+            category: AssetCategory::IntellectualProperty,
+            details: intellectual_details.clone(),
+            ownership_proof: intellectual_proof.clone(),
+
+        };
+
+        let asset_hash = register_asset(intellectual_input_data).unwrap();
+
+        let is_verified = verify_asset(asset_hash, AssetCategory::IntellectualProperty);
+
+        let not_verified = verify_asset(String::from("asdasdasa6d46a5s"), AssetCategory::IntellectualProperty);
+
+        assert_eq!(is_verified, true);
+        assert_eq!(not_verified, false);
+    }
 
 }
 

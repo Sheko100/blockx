@@ -113,8 +113,6 @@ pub fn store_asset(value: Asset, user: Principal) -> Option<u128> {
 pub fn retrieve_asset(id: u128) -> Option<Asset> {
     let asset = ASSETS.with(|assets| assets.borrow().get(&id));
 
-    println!("asset {asset:?}");
-
     asset
 }
 
