@@ -377,7 +377,7 @@ const LandingPage = ({ connectWallet }) => {
 
       {/* Rest of the landing page code remains exactly the same */}
       {/* Hero Section */}
-      <section className="relative py-32 overflow-hidden">
+      <section className="relative overflow-hidden" style={{paddingTop: "30px"}}>
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center relative z-10">
           <motion.div 
             initial={{ opacity: 0, x: -50 }}
