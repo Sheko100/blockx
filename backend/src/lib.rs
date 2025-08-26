@@ -1,11 +1,9 @@
 mod hash;
 mod store;
-mod user;
 mod asset;
 mod utils;
 mod err;
 use crate::err::{ServiceError, ServiceResult};
-use crate::user::{User, add_user, get_user, get_users_count};
 use crate::hash::{hash_text, hash_bytes};
 use crate::asset::{
     Asset,
@@ -135,11 +133,8 @@ mod tests {
         let new_category_count = get_assets_count(Some(AssetCategory::Vehicle));
         let new_count = get_assets_count(None);
 
-        ///let asset = get_asset(0);
-
         assert_eq!(new_count, curr_count);
         assert_eq!(new_category_count, curr_category_count);
-        //assert!(match!(second,result, Err(ServiceError::AssetAlreadyExists)));
     }
 
     #[test]
@@ -238,5 +233,4 @@ mod tests {
 
 }
 
-// Enable Candid export
 ic_cdk::export_candid!();

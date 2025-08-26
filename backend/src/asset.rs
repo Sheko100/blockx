@@ -122,105 +122,16 @@ impl Storable for AssetIds {
     const BOUND: Bound = Bound::Unbounded;
 }
 
-/* YOU WERE HERE
- * TODO:
- * - add guards for empty strings
- * - make the publications_links in a vector
- * - delete the category assets count as it's not useful anymore
- *
- * LOGIC:
- * some data will have files included and some not
- *
- * RealEstate will need to have files as in the proof section like, document of deed and deed
- * reference
- * RealEstate will need to have address field
- *
- * DigitalAsset will need to upload files of that asset in the details section
- * DigitalAsset should provide publication links if there are any
- *
- * WITH PHYSICAL ASSETS
- *  PROOF SECTION SHOULD HAVE ONLY THINGS THAT ONLY THE OWNER CAN HAVE 
- *  like deeds documents - legal ownership documents in PDF
- * 
- * PHYSICAL ASSETS
- *
- * if the images already exist - CAN"T REGISTER OWNERSHIP
- *
- * NON PHYSICAL ASSETS
- *
- * DIGITAL ASSETS
- *
- * if the files already exist - CAN"T REGISTER OWNERSHIP
- *
- * INTELECTUAL PROPERTY
- *
- * if the description already exist - CAN"T REGISTER OWNERSHIP
- *
- * ALL ASSETS
- * if any PROOF SECTION data already exist - CAN"T REGISTER OWNERSHIP
- *
- *
- *- Physical assets
- * - Real State
- *   - Details
- *     - images
- *     - Name
- *     - Description
- *     - Address
- *   - Ownership Proof
- *     - Deed document
- *     - Deed reference number
- * - Vehicle
- *   - Details
- *     - Images
- *     - Type
- *     - Name
- *     - Description
- *   - Ownership Proof
- *     - Registeration Number
- *     - License Plate
- * - Valuable Item
- *   - Details
- *     - Images
- *     - Name
- *     - Description
- *   - Ownership Proof
- *     - Serial Number
- * - Equipment
- *   - Details
- *     - Images
- *     - Name
- *     - Description
- *     - Manufacturer
- *  - Ownership Proof
- *    - Serial Number
- *- Non Physical Assets
- * - Digital Assets
- *   - Details
- *     - Files
- *     - Name
- *     - Description
- *   - Ownership Proof
- *     - Publication Links
- * - Intelectual property
- *   - Details
- *     - type
- *     - Name
- *     - Description
- *   - Ownership Proof
- *     - Registration number
- */
 #[ic_cdk::update]
 pub fn register_asset(mut asset_data: AssetUserInput) -> ServiceResult<String> {
 
-    /*if !is_authenticated() {
+    if !is_authenticated() {
         return Err(ServiceError::Unauthorized(
             String::from("Only autenticated users can register assets")
         ));
-    }*/
+    }
 
     let normalized_text = normalize_asset_input(&mut asset_data);
-    //let asset_hash = hash_text(&normalized_text);
 
     let mut asset = Asset {
         owner: who_am_i(),
@@ -229,7 +140,7 @@ pub fn register_asset(mut asset_data: AssetUserInput) -> ServiceResult<String> {
         details: asset_data.details,       // structured details
         ownership_proof: asset_data.ownership_proof, // must always be hashed
         hash: String::new(),
-        created_at: get_timestamp(),             // timestamp
+        created_at: get_timestamp(),
     };
 
     // hash the whole asset
@@ -239,8 +150,6 @@ pub fn register_asset(mut asset_data: AssetUserInput) -> ServiceResult<String> {
     asset.hash = asset_hash;
 
     asset.hash_unique_fields();
-
-    //println!("asset after hashing: {asset:?}");
 
     if is_unique_asset(&asset) == false {
         return Err(ServiceError::AssetAlreadyExists(
@@ -256,10 +165,6 @@ pub fn register_asset(mut asset_data: AssetUserInput) -> ServiceResult<String> {
     Ok(hash)
 }
 
-/*
- * TODO:
- * add guards for key beyond the stored users count
- */
 pub fn get_asset(id: u128) -> Asset {
     let asset: Asset = retrieve_asset(id).expect("Couldn't retrieve the asset");
 
@@ -292,14 +197,6 @@ pub fn get_assets_count(category: Option<AssetCategory>) -> u128 {
     count
 }
 
-/**
- * LOGIC:
- * will get a list8 of assets based on category
- * iterate the list and get every asset based on the id
- * then based on which category, there will be specific comparisions on specific data with hashing
- * 
- * MUST APPROVE - files and ownership proof data
- */
 pub fn is_unique_asset(new_asset: &Asset) -> bool {
     let mut is_unique = true;
     let category: &AssetCategory = &new_asset.category;
@@ -320,14 +217,6 @@ pub fn is_unique_asset(new_asset: &Asset) -> bool {
 }
 
 pub fn is_data_unique(new_asset: &Asset, old_asset: &Asset) -> bool {
-
-        // should be iteration to check every file
-        /*if let Some(doc) = &new_asset.ownership_proof.deed_document {
-            if !doc.is_empty() 
-            && new_asset.ownership_proof.deed_document == old_asset.ownership_proof.deed_document {
-                return false;
-            }
-        }*/
 
         if new_asset.ownership_proof.deed_document.len() > 0
            && new_asset.ownership_proof.deed_document == old_asset.ownership_proof.deed_document {
@@ -362,14 +251,6 @@ pub fn is_data_unique(new_asset: &Asset, old_asset: &Asset) -> bool {
             }
         }
 
-        // will need to be changed to a list of links
-        /*if let Some(ref links) = new_asset.ownership_proof.publication_links {
-            if !links.is_empty() 
-            && new_asset.ownership_proof.publication_links == old_asset.ownership_proof.publication_links {
-                return false;
-            }
-        }*/
-
         if new_asset.ownership_proof.publication_links.len() > 0
            && new_asset.ownership_proof.publication_links == old_asset.ownership_proof.publication_links {
             return false;
@@ -391,9 +272,6 @@ pub fn is_data_unique(new_asset: &Asset, old_asset: &Asset) -> bool {
 
 // Normalize all string fields in AssetUserInput
 pub fn normalize_asset_input(input: &mut AssetUserInput) {
-    // should not normalize what in details
-    //input.details.name = normalize_str(&input.details.name);
-    //input.details.description = normalize_str(&input.details.description);
 
     input.ownership_proof.deed_reference_number = normalize_opt_str(
         input.ownership_proof.deed_reference_number.as_ref()
@@ -415,31 +293,7 @@ pub fn normalize_asset_input(input: &mut AssetUserInput) {
         input.details.description = normalize_str(&input.details.description);
     }
 
-    // will need to be a list of links to be prevent the manipulating the order of the links
-    // and hacking the proof
-    /*input.ownership_proof.publication_links = normalize_opt_str(
-        input.ownership_proof.publication_links.as_ref()
-    );*/
-    //let combined_str = concatenate_user_input(input);
-    //let combined_str = String::from("hello");
-
-    //combined_str
 }
-
-/*fn concatenate_user_input(input: &mut AssetUserInput) -> String {
-    let combined = format!(
-        "{}|{}|{}|{}|{}|{}|{}",
-        input.details.name,
-        input.details.description,
-        //input.details.extra_metadata.as_ref().unwrap(),
-        //input.details.jurisdiction.as_ref().unwrap(),
-        //input.details.serial_or_id.as_ref().unwrap(),
-        //input.ownership_proof.document_url.as_ref().unwrap(),
-        //input.ownership_proof.witness.as_ref().unwrap(),
-    );
-
-    combined
-}*/
 
 /**
  * should not be used for checking asset uniqueness as it does shallow checking

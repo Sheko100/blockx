@@ -62,37 +62,14 @@ impl Asset {
             })
             .collect();
 
-        // can be refactored to if conditions
         match self.asset_type {
             AssetType::Physical => {
-                // Images stored in details.files
-                // useless -- already hashed from the frontend
-                /*self.details.files = self.details.files
-                    .iter()
-                    .map(|file| {
-                        if !file.is_empty() {
-                            hash_bytes(file.clone())
-                        } else {
-                            file.clone()
-                        }
-                    })
-                    .collect();*/
+
             }
             AssetType::NonPhysical => {
                 match self.category {
                     AssetCategory::DigitalAsset => {
-                        // Files (docs, images, etc.)
-                        // useless -- already hashed from the frontend
-                        /*self.details.files = self.details.files
-                            .iter()
-                            .map(|file| {
-                                if !file.is_empty() {
-                                    hash_bytes(file.clone())
-                                } else {
-                                    file.clone()
-                                }
-                            })
-                            .collect();*/
+
                     }
                     AssetCategory::IntellectualProperty => {
                         if !self.details.description.is_empty() {
@@ -107,9 +84,7 @@ impl Asset {
     }
     pub fn compute_hash(&self) -> String {
         let mut asset_clone = self.clone();
-        //asset_clone.hash = String::new(); // exclude existing hash
 
-        // Serialize (json or bincode)
         let serialized = Encode!(&asset_clone)
             .expect("Failed to serialize asset");
 
