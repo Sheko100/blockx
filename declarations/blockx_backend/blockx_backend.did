@@ -16,7 +16,7 @@ type AssetCategory = variant {
   Equipment;
 };
 type AssetDetails = record {
-  files : vec blob;
+  files : vec text;
   manufacturer : opt text;
   name : text;
   "type" : opt text;
@@ -31,12 +31,12 @@ type AssetUserInput = record {
   ownership_proof : Proof;
 };
 type Proof = record {
-  deed_document : opt blob;
+  deed_document : vec text;
   deed_reference_number : opt text;
-  publication_links : opt text;
+  publication_links : vec text;
+  registration_number : opt text;
   license_plate : opt text;
   serial_number : opt text;
-  registeration_number : opt text;
 };
 type Result = variant { Ok : text; Err : ServiceError };
 type ServiceError = variant {
@@ -50,9 +50,14 @@ type ServiceError = variant {
 type User = record { username : text; password : text; email : text };
 service : {
   add_user : (text, text, text) -> (nat);
-  get_asset : (nat) -> (Asset) query;
-  get_ic_timestamp : () -> (nat) query;
-  get_system_timestamp : () -> (nat) query;
+  get_assets : (vec nat) -> (vec Asset) query;
   get_user : (nat) -> (User) query;
+  get_user_assets : () -> (vec Asset) query;
   register_asset : (AssetUserInput) -> (Result);
+  // 
+  // * should not be used for checking asset uniqueness as it does shallow checking
+  // *
+  // * Checks if the asset exists by its hash
+  // 
+  verify_asset : (text, AssetCategory) -> (bool) query;
 }
