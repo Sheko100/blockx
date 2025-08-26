@@ -109,20 +109,15 @@ export async function hashFiles(filesBuffers) {
   return fileHashes;
 }
 
-export function formatTimestamp(nanoTimestamp) {
-  // Convert nanoseconds → milliseconds
-  const millis = Number(BigInt(nanoTimestamp) / 1000000n);
+export function getStringDate(nanoTimestamp=null) {
+  const millis = nanoTimestamp ? Number(BigInt(nanoTimestamp) / 1000000n) : null;
+  const date = millis ? new Date(millis) : new Date();
 
-  // Create JS date
-  const date = new Date(millis);
-
-  // Format it nicely (local date & time)
   return date.toLocaleString(undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-    second: "2-digit"
   });
 }

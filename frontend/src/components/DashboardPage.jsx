@@ -7,7 +7,8 @@ import Header from './Header';
 import { getUserAssets } from '../controller/controller.js';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { formatTimestamp } from '../utils';
+import { getStringDate } from '../utils';
+import AssetItem from './ui/AssetItem';
 
 const DashboardPage = () => {
   //const { user, logout } = useAuth();
@@ -56,7 +57,6 @@ const DashboardPage = () => {
   }, []);
 
 
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-gray-900 to-orange-900 text-white">
       {/* Floating Particles Background */}
@@ -90,6 +90,7 @@ const DashboardPage = () => {
         ))}
       </div>
 
+      {/* Glass Morphic Header */}
       <Header showNav={false} showBtn={false} showAuth={true}/>
 
       {/* Main Content */}
@@ -222,42 +223,8 @@ const DashboardPage = () => {
           </div>
 
           <div className="divide-y divide-white/10">
-            {registeredAssets.map((asset) => (
-              <motion.div 
-                key={asset.hash}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.07)' }}
-                className="p-6 flex flex-col md:flex-row md:items-center justify-between"
-              >
-                <div className="mb-4 md:mb-0">
-                  <h3 className="font-medium">{asset.details.name}</h3>
-                  <p className="text-sm text-gray-300">{asset.category} • {formatTimestamp(asset.created_at)}</p>
-                </div>
-                
-                <div className="flex items-center space-x-4">
-                 {/*<span className={`px-3 py-1 rounded-full text-sm backdrop-blur-sm ${
-                  reg.status === 'Verified' 
-                      ? 'bg-green-500/20 text-green-400' 
-                      : 'bg-orange-500/20 text-orange-400'
-                      'bg-green-500/20 text-green-400' 
-                  }`}>
-                    Verified
-                  </span>*/}
-
-                  <span className={'px-3 py-1 rounded-full text-sm backdrop-blur-sm bg-green-500/20 text-green-400'}>
-                    Verified
-                  </span>
-                  
-                  <motion.button 
-                    whileHover={{ x: 5 }}
-                    className="flex items-center text-blue-400 hover:text-blue-300"
-                  >
-                    <span>Details</span>
-                    <IconArrowRight className="ml-1 w-4 h-4" />
-                  </motion.button>
-                </div>
-              </motion.div>
+            {registeredAssets.map((asset, i) => (
+              <AssetItem asset={asset}/>
             ))}
           </div> 
         </motion.div>

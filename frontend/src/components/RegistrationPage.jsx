@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { processFile } from '../utils';
+import { processFile, getStringDate } from '../utils';
 import { registerAsset, getAsset } from '../controller/controller.js';
 import { useIIAuth } from './context/InternetIdentityContext';
 import Header from './Header';
 import FileUpload from './ui/FileUpload';
 import { toast } from 'react-hot-toast';
-import CertificatePDF from './CertificatePDF';
-import { pdf } from '@react-pdf/renderer';
+import DownloadCertBtn from './ui/DownloadCertBtn'; 
 import { 
   IconUpload, 
   IconHome, 
@@ -44,7 +43,7 @@ const RegistrationPage = () => {
   const [proofFileNames, setProofFileNames] = useState([]);
   const [maxProofFiles, setMaxProofFiles] = useState(2);
   const [mountedSection, setMountedSection] = useState('asset_type');
-  const [allowSubmit, setAllowSubmit] = useState(false);
+  const [assetHash, setAssetHash] = useState(null);
 
   const { principal, login, logout, loading, isAuthenticated } = useIIAuth();
 
@@ -348,8 +347,11 @@ const RegistrationPage = () => {
 
     } else if (mountedSection === 'ownership_proof') {
         const proofFields = getCategorySpecificProofs().map((proof) => proof.name.split('.')[1]);
-        for (const field of proofFields ) {
+
+        for (const field of proofFields) {
           const value = formData.ownership_proof[field];
+          // pass if the field is empty
+          if (value.trim().length < 1) continue;
           const fieldValidation = validate.ownership_proof[field];
 
           if (fieldValidation.regex.test(value) === false) {
@@ -376,7 +378,7 @@ const RegistrationPage = () => {
 
     try {
       const hash = await registerAsset(formData);
-      console.log("asset hash", hash);
+      setAssetHash(hash);
       nextStep();
     } catch (error) {
       if ('AssetAlreadyExists' in error) {
@@ -387,21 +389,6 @@ const RegistrationPage = () => {
       console.log('error:', error);
     }
   }
-
-  const downloadCert = async () => {
-    // Create instance of PDF
-    const blob = await pdf(<CertificatePDF asset={formData} />).toBlob();
-
-    // Create download link
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "myfile.pdf";
-    link.click();
-
-    // Clean up
-    URL.revokeObjectURL(url);
-  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -752,7 +739,7 @@ const RegistrationPage = () => {
             
             <h2 className="text-3xl font-bold text-white">Registration Complete!</h2>
             <p className="text-gray-300 text-lg">
-              Your {formData.asset_type === 'Physical' ? 'physical asset' : 'digital asset'} has been successfully registered on the blockchain.
+              Your asset has been successfully registered on the blockchain.
             </p>
             
             <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-6 rounded-xl border border-gray-700/50 mt-8 text-left">
@@ -780,17 +767,6 @@ const RegistrationPage = () => {
                   <p className="text-white font-medium">{new Date().toLocaleDateString()}</p>
                 </div>
               </div>
-              
-              {formData.details.serial_or_id && (
-                <div className="mb-2">
-                  <p className="text-gray-500 text-sm">Identification Number</p>
-                  <p className="text-white font-mono text-sm">{formData.details.serial_or_id}</p>
-                </div>
-              )}
-              
-              <p className="text-xs text-gray-500 font-mono break-all mt-4">
-                Blockchain Hash: (will be generated after submission)
-              </p>
             </div>
             
             <div className="flex justify-center gap-4 mt-8">
@@ -812,30 +788,7 @@ const RegistrationPage = () => {
                 <IconArrowRight className="ml-2 w-5 h-5" />
               </motion.button>
             </div>
-            <motion.button
-            className="relative bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-lg font-medium transition-all overflow-hidden group"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={downloadCert}
-          >
-            <span className="relative z-10">
-              Download Certificate
-            </span>
-            <motion.span className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-            {/* Button shine effect */}
-            <motion.span
-              className="absolute top-0 left-0 w-1/2 h-full bg-white/30 skew-x-[-20deg]"
-              initial={{ x: "-150%" }}
-              animate={{
-                x: ["-150%", "200%"],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                repeatDelay: 3,
-              }}
-            />
-          </motion.button>
+            <DownloadCertBtn asset={formData} assetId={assetHash}/>
           </motion.div>
         );
       default:

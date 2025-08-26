@@ -413,7 +413,8 @@ const LandingPage = ({ connectWallet }) => {
           </AnimatePresence>
         </div>
       </div>
-      <span className="mt-2">Assets</span>
+      <span className="mt-2">Assets on</span>
+      <span style={{ color: '#F97316'}} >Internet Computer</span>
     </div>
   </div>
 </motion.div>
@@ -876,7 +877,7 @@ const LandingPage = ({ connectWallet }) => {
           
           <motion.div className="flex justify-center">
             <motion.button 
-              onClick={connectWallet}
+              onClick={() => navigate('/register')}
               className="relative bg-gradient-to-r from-orange-500 to-orange-600 text-white px-10 py-5 rounded-xl font-medium text-lg overflow-hidden group"
               whileHover={{ 
                 scale: 1.05,
@@ -885,7 +886,7 @@ const LandingPage = ({ connectWallet }) => {
               whileTap={{ scale: 0.98 }}
             >
               <span className="relative z-10 flex items-center">
-                Connect Wallet & Get Started
+                Get Started
                 <IconArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-2 transition-transform" />
               </span>
               <motion.span 
@@ -920,7 +921,7 @@ const LandingPage = ({ connectWallet }) => {
             </motion.button>
           </motion.div>
           
-          <motion.div 
+          {/*<motion.div 
             animate={{
               opacity: [0.6, 1, 0.6],
               y: [0, 5, 0]
@@ -931,8 +932,8 @@ const LandingPage = ({ connectWallet }) => {
             }}
             className="mt-10 flex justify-center"
           >
-            <div className="w-10 h-10 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
-          </motion.div>
+            <div className="w-10 h-10  border-2 border-white border-t-transparent animate-spin"></div>
+          </motion.div>*/}
         </div>
       </motion.section>
 

@@ -2,8 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { IconShield, IconUsers, IconGlobe, IconRocket } from '@tabler/icons-react';
 import Header from './Header';
+import { useNavigate } from 'react-router-dom';
 
 const About = () => {
+  const navigate = useNavigate();
+
   const teamMembers = [
     {
       name: "Shaker Sharaby",
@@ -294,7 +297,7 @@ const About = () => {
               Join thousands of users who are already securing their digital and physical assets on our platform
             </p>
             <motion.button 
-              onClick={() => window.location.href = '/register'}
+              onClick={() => navigate('/register')}
               className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-8 py-4 rounded-xl font-medium"
               whileHover={{ y: -3 }}
               whileTap={{ scale: 0.98 }}

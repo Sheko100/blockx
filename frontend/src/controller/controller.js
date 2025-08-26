@@ -23,12 +23,13 @@ export async function registerAsset(assetData) {
 
   if (result.Ok) {
     const hash = result.Ok;
-    return hash;
+    return `0x${hash}`;
   } else if (result.Err) {
     throw result.Err;
   }
 }
 
+// useless - should be deleted
 export async function getAsset(id) {
   if (!backend) throw 'Agent is not available';
 
@@ -44,6 +45,38 @@ export async function getUserAssets() {
 
   console.log("backend", backend);
 
+  const mockAssets = [
+    {
+      asset_type: {Physical: null},
+      category: {RealEstate: null},
+      details: {
+        // images only allowed for physical assets, and all files allowed for digital assets
+        files: ['as65d465sad4a65s', 'as6d4a54d6sd'],
+        name: ['My land'],
+        description: ['ma land is my fav land'],
+        // for real estate
+        address: ['never never land'],
+        // for vehicles like car, motorcycle, etc...
+        type: [],
+        // for equipmenets
+        manufacturer: [],
+      },
+      ownership_proof: {
+        // for real estate
+        deed_document: [],
+        deed_reference_number: [],
+        // for vehicles and intellectual properties
+        registration_number: [],
+        // for vehicles
+        license_plate: [],
+        // for physical products
+        serial_number: [],
+        // for digital assets
+        publication_links: [],
+      },
+    },
+  ]
+
   const userAssets = await backend.get_user_assets();
 
   const assetsView = [];
@@ -56,6 +89,20 @@ export async function getUserAssets() {
   return assetsView;
 }
 
+export async function verifyAsset(hash, category) {
+  const rawHash = hash.toLowerCase().startsWith('0x') ? hash.substring(2) : hash;
+  const categoryObj = objectIt(category);
+
+
+  const isVerified = await backend.verify_asset(rawHash, categoryObj);
+
+  console.log('isVerified', isVerified);
+
+  //const isVerified = false;
+
+  return isVerified;
+}
+
 // Modifies the data to be compitable with rust and the agent
 async function assetDataBackend(data) {
   const preparedData = {
@@ -65,7 +112,7 @@ async function assetDataBackend(data) {
       ...data.details,
     },
     ownership_proof: {
-      deed_document: [...data.ownership_proof.deed_document],
+      deed_document: [...data.ownerships_proof.deed_document],
       ...data.ownership_proof,
     },
   };
@@ -104,8 +151,6 @@ async function assetDataBackend(data) {
     proofObj[key] = arrayIt(proofObj[key]);
   }
 
-  console.log('preparedData', preparedData);
-
   return preparedData;
 }
 
@@ -115,10 +160,6 @@ function assetDataView(data) {
     details: {
       files: [...data.details.files],
       ...data.details,
-    },
-    ownership_proof: {
-      deed_document: [...data.ownership_proof.deed_document],
-      ...data.ownership_proof,
     },
   };
   const detailsObj = preparedData['details'];
@@ -143,6 +184,9 @@ function assetDataView(data) {
   // modify the variants to be in an object with null as a value
   preparedData.asset_type = assetTypeMap[Object.keys(preparedData.asset_type)[0]];
   preparedData.category = assetCategoryMap[Object.keys(preparedData.category)[0]];
+
+  console.log('asset category', preparedData.category);
+  if (preparedData.category=== 'Intellectual Property') delete detailsObj.description;
 
   // add to array if not in array in the details object
   for (const option of detailsOptions) {

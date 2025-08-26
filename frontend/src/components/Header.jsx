@@ -69,7 +69,10 @@ const Header = ({showNav=true, showBtn=true, showAuth=false}) => {
 	          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
 	          className="w-10 h-10 bg-gradient-to-r from-blue-500 to-orange-500 rounded-lg flex items-center justify-center text-white font-bold text-xl"
 	        >
-	          <IconSquareAsterisk className="w-8 h-8" />
+	        	<div className="w-10 h-10" style={{backgroundImage: "url('/logo.png')", backgroundSize: "50px", backgroundPosition: 'center', backgroundRepeat: "no-repeat"}}>
+	        	</div>
+	         {/* <IconSquareAsterisk className="w-8 h-8" /> */}
+
 	        </motion.div>
 	        <span className="ml-3 text-xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent">
 	          Verisys
@@ -78,22 +81,22 @@ const Header = ({showNav=true, showBtn=true, showAuth=false}) => {
 
 	      {showNav && (
 	        <nav className="hidden md:flex space-x-8">
-	          <Link to="/#features" className="text-gray-300 hover:text-white relative group">
+	          <a href="#features" to="/#features" className="text-gray-300 hover:text-white relative group">
 	            Features
 	            <motion.span
 	              className="absolute left-0 bottom-0 h-0.5 bg-gradient-to-r from-blue-400 to-orange-400 w-0"
 	              whileHover={{ width: "100%" }}
 	              transition={{ duration: 0.3 }}
 	            />
-	          </Link>
-	          <Link to="/#how-it-works" className="text-gray-300 hover:text-white relative group">
+	          </a>
+	          <a href="#how-it-works" className="text-gray-300 hover:text-white relative group">
 	            How It Works
 	            <motion.span
 	              className="absolute left-0 bottom-0 h-0.5 bg-gradient-to-r from-blue-400 to-orange-400 w-0"
 	              whileHover={{ width: "100%" }}
 	              transition={{ duration: 0.3 }}
 	            />
-	          </Link>
+	          </a>
 	          <Link to="/about" className="text-gray-300 hover:text-white relative group">
 	            About
 	            <motion.span

@@ -1,4 +1,6 @@
 import React from 'react';
+import {useEffect} from 'react';
+
 import { Page, Text, View, Document, StyleSheet, Image } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
@@ -87,7 +89,26 @@ const styles = StyleSheet.create({
   }
 });
 
-const CertificatePDF = ({ asset_type, category}) => {
+const CertificatePDF = ({asset, assetId, date}) => {
+
+  const categoryDetailsFields = () => {
+
+    switch(asset.category) {
+      case 'RealEstate':
+        return [
+          { name: 'address', label: 'PropertyAddress'},
+        ];
+      case 'Vehicle':
+        return [
+          { name: 'type', label: 'Vehicle Type:'},
+        ];
+      case 'Equipment':
+        return [
+          { name: 'manufacturer', label: 'Manufacturer'},
+      ];
+    }
+  }
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -97,47 +118,48 @@ const CertificatePDF = ({ asset_type, category}) => {
             <Text style={styles.subtitle}>Asset Ownership Certificate</Text>
           </View>
           <View>
-          <Text style={{ fontSize: 12 }}>Certificate ID: 0x456456a4sdasda56</Text>
-            <Text style={{ fontSize: 12 }}>Date: Today</Text>
+            <Text style={{ fontSize: 12 }}>Date: {date}</Text>
           </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Asset Information</Text>
           <View style={styles.row}>
-            <Text style={styles.label}>Asset Type:</Text>
-            <Text style={styles.value}>{asset_type === 'Physical' ? 'Physical Asset' : 'Non-Physical Asset'}</Text>
+            <Text style={styles.label}>Type:</Text>
+            <Text style={styles.value}>{asset.asset_type === 'Physical' ? 'Physical Asset' : 'Non-Physical Asset'}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Category: {category}</Text>
+            <Text style={styles.label}>Category:</Text>
            <Text style={styles.value}>
-              {category?.replace(/([A-Z])/g, ' $1').trim()}
+              {asset.category?.replace(/([A-Z])/g, ' $1').trim()}
             </Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>Asset Name:</Text>
-            <Text style={styles.value}></Text>
+            <Text style={styles.label}>Name:</Text>
+            <Text style={styles.value}>{asset.details.name}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Description:</Text>
-            <Text style={styles.value}></Text>
+            <Text style={styles.value}>{asset.details.description}</Text>
           </View>
           
           {/* Display category-specific fields */}
-          {category === 'RealEstate' && (
-            <>
-              <View style={styles.row}>
-                <Text style={styles.label}>Property Address:</Text>
-                <Text style={styles.value}></Text>
-              </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Deed Reference:</Text>
-                <Text style={styles.value}>{asset.ownership_proof.deed_reference}</Text>
-              </View>
-            </>
-          )}
-          
-          {/* Add similar conditionals for other categories */}
+          {
+            ['RealEstate', 'Equipment', 'Vehicle'].includes(asset.category) && 
+            categoryDetailsFields().map((field) => {
+              return (
+                  <View style={styles.row}>
+                    <Text style={styles.label}>{field.label}</Text>
+                    <Text style={styles.value}>{asset.details[field.name]}</Text>
+                  </View>
+             );
+            })
+          }
+
+          <View style={styles.row}>
+            <Text style={styles.label}>Asset ID:</Text>
+            <Text style={styles.hash}>0x{assetId}</Text>
+          </View>
         </View>
 
         {/*{asset.details.images.length > 0 && (
@@ -162,7 +184,7 @@ const CertificatePDF = ({ asset_type, category}) => {
         </View>*/}
 
         <View style={styles.footer}>
-          <Text>This certificate serves as proof of registration on the PropLicense blockchain.</Text>
+          <Text>This certificate serves as proof of registration on the Verisys site on the Internet Computer.</Text>
           <Text>The information contained in this document is immutable and verifiable.</Text>
         </View>
       </Page>
