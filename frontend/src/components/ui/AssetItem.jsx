@@ -21,14 +21,6 @@ export default function AssetItem({asset}) {
 	      </div>
 	      
 	      <div className="flex items-center space-x-4">
-	       {/*<span className={`px-3 py-1 rounded-full text-sm backdrop-blur-sm ${
-	        reg.status === 'Verified' 
-	            ? 'bg-green-500/20 text-green-400' 
-	            : 'bg-orange-500/20 text-orange-400'
-	            'bg-green-500/20 text-green-400' 
-	        }`}>
-	          Verified
-	        </span>*/}
 
 	        <span className={'px-3 py-1 rounded-full text-sm backdrop-blur-sm bg-green-500/20 text-green-400'}>
 	          Verified

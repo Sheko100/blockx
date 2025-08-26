@@ -97,8 +97,6 @@ const RegistrationPage = () => {
       setMinFiles(2);
     }
 
-    console.log('form data', formData);
-
     clearForm();
   }, [formData.category]);
 
@@ -371,7 +369,7 @@ const RegistrationPage = () => {
       try {
         const id = await login();
       } catch(error) {
-        console.log('Error while logging in;', error);
+        console.error('Error while logging in;', error);
         return;
       }
     }
@@ -386,7 +384,6 @@ const RegistrationPage = () => {
       } else {
         toast.error("Failed to register asset:", error[Object.keys(error)[0]]);
       }
-      console.log('error:', error);
     }
   }
 

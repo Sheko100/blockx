@@ -16,7 +16,7 @@ const Header = ({showNav=true, showBtn=true, showAuth=false}) => {
       await logout();
       toast.success("Logged out successfully");
     } catch (error) {
-      console.log('error while logging out:', error);
+      console.error('error while logging out:', error);
       toast.error("Failed to log out");
     }
   }
@@ -71,7 +71,6 @@ const Header = ({showNav=true, showBtn=true, showAuth=false}) => {
 	        >
 	        	<div className="w-10 h-10" style={{backgroundImage: "url('/logo.png')", backgroundSize: "50px", backgroundPosition: 'center', backgroundRepeat: "no-repeat"}}>
 	        	</div>
-	         {/* <IconSquareAsterisk className="w-8 h-8" /> */}
 
 	        </motion.div>
 	        <span className="ml-3 text-xl font-bold bg-gradient-to-r from-blue-400 to-orange-400 bg-clip-text text-transparent">

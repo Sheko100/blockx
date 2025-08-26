@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import { verifyAsset } from '../controller/controller';
+import { Listbox } from "@headlessui/react";
 import { 
   IconSearch, 
   IconShieldCheck, 
@@ -22,47 +23,30 @@ const VerifyProperty = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isValid, setIsValid] = useState(false);
 
+  const categories = [
+    { value: "", label: "Select a category" },
+    { value: "RealEstate", label: "Real Estate" },
+    { value: "Vehicle", label: "Vehicle" },
+    { value: "ValuableItem", label: "Valuable Item" },
+    { value: "Equipment", label: "Equipment" },
+    { value: "DigitalAsset", label: "Digital Asset" },
+    { value: "IntellectualProperty", label: "Intellectual Property" },
+  ];
+
+  const [selected, setSelected] = useState(categories[0]);
+
   const handleVerify = async (e) => {
     e.preventDefault();
     setIsVerifying(true);
     let isVerified = false;
     setShowResult(false);
-    // Simulate verification with category-specific data
-    /*setTimeout(() => {
-      setIsVerifying(false);
-      
-      if (assetCategory === 'digital') {
-        setVerificationResult({
-          valid: true,
-          title: "Digital Art Collection",
-          owner: "0x8921...f3a7",
-          registered: "2023-06-15",
-          type: "NFT",
-          blockchain: "Ethereum",
-          category: "digital"
-        });
-      } else {
-        setVerificationResult({
-          valid: true,
-          title: "Luxury Apartment",
-          owner: "0x4c8d...e9f2",
-          registered: "2023-08-22",
-          type: "Real Estate",
-          location: "New York, NY",
-          category: "physical"
-        });
-      }
-    }, 2000);*/
-
-    // call the controller function
     try {
-        isVerified = await verifyAsset(assetHash, assetCategory);
-        console.log("verified:", isVerified);
+       isVerified = await verifyAsset(assetHash, selected.value);
         setShowResult(true);
         setIsValid(isVerified);
     } catch (error) {
-        //toast.error()
-        console.log("Couldn't verify the asset:", error);
+        toast.error()
+        console.error("Couldn't verify the asset:", error);
     }
 
     setIsVerifying(false);
@@ -144,20 +128,28 @@ const VerifyProperty = () => {
                   <label className="block text-sm font-medium text-white mb-3">
                     Asset Category
                   </label>
-                  <select
-                    value={assetCategory}
-                    onChange={(e) => setAssetCategory(e.target.value)}
-                    className="w-full py-3 px-4 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-sm"
-                    required
-                  >
-                    <option value="">Select a category</option>
-                    <option value="RealEstate">Real Estate</option>
-                    <option value="Vehicle">Vehicle</option>
-                    <option value="ValuableItem">Valuable Item</option>
-                    <option value="Equipment">Equipment</option>
-                    <option value="DigitalAsset">Digital Asset</option>
-                    <option value="IntellectualProperty">Intellectual Property</option>
-                  </select>
+                  <div className="w-full">
+                    <Listbox value={selected} onChange={setSelected}>
+                      <Listbox.Button className="w-full py-3 px-4 rounded-lg bg-white/10 border border-white/20 text-white text-left focus:outline-none focus:ring-2 focus:ring-blue-500 backdrop-blur-sm">
+                        {selected.label}
+                      </Listbox.Button>
+                      <Listbox.Options className="mt-1 rounded-lg bg-white/20 border border-white/30 backdrop-blur-sm text-white shadow-lg">
+                        {categories.map((category) => (
+                          <Listbox.Option
+                            key={category.value}
+                            value={category}
+                            className={({ active }) =>
+                              `cursor-pointer px-4 py-2 ${
+                                active ? "bg-blue-500 text-white" : "bg-transparent"
+                              }`
+                            }
+                          >
+                            {category.label}
+                          </Listbox.Option>
+                        ))}
+                      </Listbox.Options>
+                    </Listbox>
+                  </div>
                 </div>
 
                 {/* Asset Hash/ID Input */}
@@ -247,54 +239,6 @@ const VerifyProperty = () => {
                       </span>
                     </div>
                   </div>
-
-                  {/*<div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-400">Property Title</p>
-                      <p className="font-medium text-white">{verificationResult.title}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">Owner</p>
-                      <p className="font-medium text-white">{verificationResult.owner}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">Registration Date</p>
-                      <p className="font-medium text-white">{verificationResult.registered}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400">
-                        {verificationResult.category === 'digital' ? 'Asset Type' : 'Property Type'}
-                      </p>
-                      <p className="font-medium text-white">{verificationResult.type}</p>
-                    </div>
-                    {verificationResult.category === 'digital' ? (
-                      <div>
-                        <p className="text-sm text-gray-400">Blockchain</p>
-                        <p className="font-medium text-white">{verificationResult.blockchain}</p>
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-sm text-gray-400">Location</p>
-                        <p className="font-medium text-white">{verificationResult.location}</p>
-                      </div>
-                    )}
-                  </div> */}
-
-                  {/*{isValid && (
-                   <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="mt-6 w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center relative overflow-hidden group"
-                    >
-                      <span className="relative z-10 flex items-center">
-                        <IconFileCertificate className="mr-2" />
-                        View Certificate
-                      </span>
-                      <motion.span 
-                        className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      />
-                    </motion.button>
-                  )}*/}
                 </div>
               </motion.div>
             )}

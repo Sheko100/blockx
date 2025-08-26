@@ -4,21 +4,10 @@ import { arrayIt, objectIt, hashFiles } from '../utils';
 
 const backend = canisterId ? createActor(canisterId) : null;
 
-// useless - should be deleted
-export async function hashText(text) {
-  if (!backend) throw 'Agent is not available';
-  if (text === '') throw 'Passed text is empty';
-
-  const hash = await backend.hash_text(text);
-
-  return hash;
-}
-
 export async function registerAsset(assetData) {
   if (!backend) throw 'Agent is not available';
 
   const backendData = await assetDataBackend(assetData);
-  console.log('backend data', backendData);
   const result = await backend.register_asset(backendData);
 
   if (result.Ok) {
@@ -29,53 +18,8 @@ export async function registerAsset(assetData) {
   }
 }
 
-// useless - should be deleted
-export async function getAsset(id) {
-  if (!backend) throw 'Agent is not available';
-
-  const result = await backend.get_asset(id);
-
-  //console.log('getting asset:', result);
-
-  //console.log('owner principal', result.owner.toText())
-}
-
 export async function getUserAssets() {
   if (!backend) throw 'Agent is not available';
-
-  console.log("backend", backend);
-
-  const mockAssets = [
-    {
-      asset_type: {Physical: null},
-      category: {RealEstate: null},
-      details: {
-        // images only allowed for physical assets, and all files allowed for digital assets
-        files: ['as65d465sad4a65s', 'as6d4a54d6sd'],
-        name: ['My land'],
-        description: ['ma land is my fav land'],
-        // for real estate
-        address: ['never never land'],
-        // for vehicles like car, motorcycle, etc...
-        type: [],
-        // for equipmenets
-        manufacturer: [],
-      },
-      ownership_proof: {
-        // for real estate
-        deed_document: [],
-        deed_reference_number: [],
-        // for vehicles and intellectual properties
-        registration_number: [],
-        // for vehicles
-        license_plate: [],
-        // for physical products
-        serial_number: [],
-        // for digital assets
-        publication_links: [],
-      },
-    },
-  ]
 
   const userAssets = await backend.get_user_assets();
 
@@ -96,10 +40,6 @@ export async function verifyAsset(hash, category) {
 
   const isVerified = await backend.verify_asset(rawHash, categoryObj);
 
-  console.log('isVerified', isVerified);
-
-  //const isVerified = false;
-
   return isVerified;
 }
 
@@ -112,7 +52,7 @@ async function assetDataBackend(data) {
       ...data.details,
     },
     ownership_proof: {
-      deed_document: [...data.ownerships_proof.deed_document],
+      deed_document: [...data.ownership_proof.deed_document],
       ...data.ownership_proof,
     },
   };
@@ -185,7 +125,6 @@ function assetDataView(data) {
   preparedData.asset_type = assetTypeMap[Object.keys(preparedData.asset_type)[0]];
   preparedData.category = assetCategoryMap[Object.keys(preparedData.category)[0]];
 
-  console.log('asset category', preparedData.category);
   if (preparedData.category=== 'Intellectual Property') delete detailsObj.description;
 
   // add to array if not in array in the details object

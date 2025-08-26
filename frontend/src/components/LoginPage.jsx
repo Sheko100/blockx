@@ -17,7 +17,6 @@ const LoginPage = ({ onLoginSuccess, redirectAction }) => {
     setIsConnecting(true);
     try {
       const id = await login();
-      console.log('id', id);
       //setAuthInfo(authInfo);
       toast.success("Logged in successfully");
     } catch (error) {

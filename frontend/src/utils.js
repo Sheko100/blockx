@@ -28,10 +28,8 @@ export function processFile(file) {
       if (isText) {
       	const normalizedText = normalizeText(reader.result);
         bytes = textToBytes(normalizedText);
-        console.log('text file in bytes:', bytes);
       } else {
       	bytes = new Uint8Array(reader.result);
-      	console.log('not text file in bytes:', bytes);
       }
 
       resolve(bytes);
@@ -99,7 +97,6 @@ function isPlainObj(value) {
 export async function hashFiles(filesBuffers) {
   const fileHashes = [];
   for (const file of filesBuffers) {
-    console.log('file to be hashed', file);
     const hashBuffer = await crypto.subtle.digest("SHA-256", file);
     const bytesArray = Array.from(new Uint8Array(hashBuffer));
     const hexHash = bytesArray.map(b => b.toString(16).padStart(2, "0")).join("");

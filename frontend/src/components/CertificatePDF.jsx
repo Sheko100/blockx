@@ -161,28 +161,6 @@ const CertificatePDF = ({asset, assetId, date}) => {
             <Text style={styles.hash}>0x{assetId}</Text>
           </View>
         </View>
-
-        {/*{asset.details.images.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Asset Images</Text>
-            <View style={styles.images}>
-              {asset.details.images.map((img, index) => (
-                <View key={index} style={styles.imageContainer}>
-                  <Image src={URL.createObjectURL(img)} style={styles.image} />
-                </View>
-              ))}
-            </View>
-          </View>
-        )}*/}
-
-       {/* <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Blockchain Verification</Text>
-          <View style={styles.row}>
-            <Text style={styles.label}>Transaction Hash:</Text>
-            <Text style={[styles.value, styles.hash]}>{assetHash}</Text>
-          </View>
-        </View>*/}
-
         <View style={styles.footer}>
           <Text>This certificate serves as proof of registration on the Verisys site on the Internet Computer.</Text>
           <Text>The information contained in this document is immutable and verifiable.</Text>

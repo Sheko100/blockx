@@ -13,17 +13,6 @@ import About from './components/About';
 
 import { Toaster } from 'react-hot-toast'
 
-
-
-/*ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  </React.StrictMode>
-);*/
-
-
 function App() {
   return (
     <InternetIdentityProvider>

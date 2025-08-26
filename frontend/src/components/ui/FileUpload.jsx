@@ -40,7 +40,7 @@ export default function FileUpload({
 
       if (!allTypesSupported && !isFileSupported(file)) {
         setError(`Please, upload only supported types: ${supportedTypes.join(', ')}`)
-        console.log('type is not supported');
+        console.error('type is not supported');
         return;
       }
 
@@ -48,9 +48,23 @@ export default function FileUpload({
       processed.push(processedFile);
     }
 
+
+
     setFileNames(files.map((f) => f.name));
     onChange(processed);
   };
+
+  function toAcceptString() {
+    return allTypesSupported
+      ? '*/*'
+      : supportedTypes
+        .map(t => t.toLowerCase()) // normalize casing
+        .map(t => (t === 'jpg' ? 'jpeg' : t)) // map JPG -> jpeg
+        .map(t => `.${t}`) // turn into extension
+        .join(', ');
+  }
+
+  const acceptString = toAcceptString();
 
   const isUploaded = value.length > 0;
 
@@ -84,6 +98,7 @@ export default function FileUpload({
           id={label.replace(/\s+/g, "-").toLowerCase()}
           multiple={multiple}
           disabled={value.length >= maxFiles}
+          accept={acceptString}
         />
 
         <motion.label
@@ -92,7 +107,6 @@ export default function FileUpload({
           whileTap={{ scale: 0.95 }}
           className="inline-block px-6 py-3 bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-blue-400 rounded-lg text-sm font-medium cursor-pointer hover:bg-blue-500/40 transition-all"
         >
-          {/*{isUploaded ? "Change File" : "Select File"}*/}
           Select File
         </motion.label>
       </div>
