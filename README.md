@@ -161,6 +161,12 @@ The project is following the **MVC** software architectural pattern.
 └── vite.config.js
 ```
 
+## Roadmap
+
+- The ability to transfer asset ownership
+- Integrating more authentication methods (other wallets)
+- Integrating NLP technology to check assets simalarities
+
 ## Contributing
 
 1. Fork the repo
