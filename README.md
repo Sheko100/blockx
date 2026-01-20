@@ -1,6 +1,6 @@
 # Verisys (former blockx)
 
-**Verisys** is a dApp for registering your ownership of all assets whether they are Physical assets in the real world or non-physical assets like your ideas or anything digital on the **Internet Computer**.
+**Verisys** is a dApp for registering your ownership of all assets whether they are physical assets in the real world or non-physical assets like your ideas or anything digital on the **Internet Computer**.
 
 **The Problem**:
 
