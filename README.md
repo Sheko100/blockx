@@ -37,7 +37,7 @@ all other links are candid interfaces.
 - Secure and easy login with **Internet Identity**
 - Download your assets ownership approval certificates
 - Secure files upload as they are not saved
-- User-freindly UI/UX
+- User-friendly UI/UX
 
 ## Architecture
 
