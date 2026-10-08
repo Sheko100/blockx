@@ -1,14 +1,40 @@
-import { createActor, canisterId } from '../../../declarations/blockx_backend';
-import { AuthClient } from '@dfinity/auth-client';
+import { getActor } from './agent.js';
 import { arrayIt, objectIt, hashFiles } from '../utils';
+import { getCanisterEnv } from "@icp-sdk/core/agent/canister-env";
 
-const backend = canisterId ? createActor(canisterId) : null;
 
-export async function registerAsset(assetData) {
-  if (!backend) throw 'Agent is not available';
+const canisterId = import.meta.env.VITE_BACKEND_CANISTER_ID;
 
-  const backendData = await assetDataBackend(assetData);
-  const result = await backend.register_asset(backendData);
+const canisterEnv = getCanisterEnv();
+
+const rootKey = canisterEnv['IC_ROOT_KEY'];
+
+// console.log('canisterId:', canisterId); // Enable when debugging canister configuration.
+
+const agentOptions = {
+  rootKey: rootKey,
+  shouldFetchRootKey: false,
+};
+
+function getBackendActor(identity) {
+  if (!canisterId) throw new Error('Backend canister is not configured');
+
+  return getActor(canisterId, agentOptions, identity);
+}
+
+export async function registerAsset(assetData, identity) {
+  if (!identity) throw new Error('Sign in before registering an asset');
+  const backend = getBackendActor(identity);
+
+  let backendData = await assetDataBackend(assetData);
+  
+  let result = null;
+  
+  try {
+    result = await backend.register_asset(backendData);
+  } catch(error) {
+    throw error;
+  }
 
   if (result.Ok) {
     const hash = result.Ok;
@@ -18,8 +44,9 @@ export async function registerAsset(assetData) {
   }
 }
 
-export async function getUserAssets() {
-  if (!backend) throw 'Agent is not available';
+export async function getUserAssets(identity) {
+  if (!identity) throw new Error('Sign in before loading user assets');
+  const backend = getBackendActor(identity);
 
   const userAssets = await backend.get_user_assets();
 
@@ -38,7 +65,7 @@ export async function verifyAsset(hash, category) {
   const categoryObj = objectIt(category);
 
 
-  const isVerified = await backend.verify_asset(rawHash, categoryObj);
+  const isVerified = await getBackendActor().verify_asset(rawHash, categoryObj);
 
   return isVerified;
 }
@@ -56,6 +83,7 @@ async function assetDataBackend(data) {
       ...data.ownership_proof,
     },
   };
+
   const detailsOptions = ['address', 'type', 'manufacturer'];
   const detailsObj = preparedData['details'];
   const proofObj = preparedData['ownership_proof'];
@@ -70,6 +98,10 @@ async function assetDataBackend(data) {
 
   // add to array if not in array in the details object
   for (const option of detailsOptions) {
+  
+    // insert all to an array except strings
+    if (typeof detailsObj[option] === "string") continue;
+
     detailsObj[option] = arrayIt(detailsObj[option])
   }
 
@@ -78,19 +110,19 @@ async function assetDataBackend(data) {
     ? await hashFiles(proofObj.deed_document)
     : [];
 
+  // split public links into array of strings
+  const publication_links = proofObj.publication_links.replace(/\s/g, '');
+  proofObj.publication_links = publication_links ? publication_links.split(',') : [];
+
   // add array if not array in the ownership_proof object
   for (const key of Object.keys(proofObj)) {
-    if (key === 'deed_document') continue;
- 
-    // specific for digital asset
-    if (assetCategory === "DigitalAsset" && key === 'publication_links') {
-      const links = proofObj[key].replace(/\s/g, '').split(',');
-      proofObj[key] = links;
-      continue;
-    }
+
+    if (key === 'deed_document' || typeof proofObj[key] === "string") continue; // don't array 
+
+    // array all the rest of the keys excpet if the value is array
     proofObj[key] = arrayIt(proofObj[key]);
   }
-
+  
   return preparedData;
 }
 
@@ -103,34 +135,35 @@ function assetDataView(data) {
     },
   };
   const detailsObj = preparedData['details'];
-  const assetCategory = preparedData.category;
   const assetTypeMap = {
     Physical: 'Physical',
-    NonPhysical: 'Non-Physical,'
-  };
-  const assetCategoryMap = {
-    RealEstate: 'Real Estate',
-    Vehicle: 'Vehicle',
-    ValuableItem: 'Valuable Item',
-    Equipment: 'Equipment',
-    DigitalAsset: 'Digital Asset',
-    IntellectualProperty: 'Intellectual Property',
+    NonPhysical: 'Non-Physical',
   };
   const detailsOptions = ['address', 'type', 'manufacturer'];
 
   // delete the ownership proof as it is not used in the view
   if (preparedData.ownership_proof) delete preparedData.ownership_proof;
 
-  // modify the variants to be in an object with null as a value
-  preparedData.asset_type = assetTypeMap[Object.keys(preparedData.asset_type)[0]];
-  preparedData.category = assetCategoryMap[Object.keys(preparedData.category)[0]];
+  // Decode Candid variants while keeping the category's enum value for consumers
+  // such as the certificate's category-specific field selection.
+  const assetType = typeof preparedData.asset_type === 'string'
+    ? preparedData.asset_type
+    : Object.keys(preparedData.asset_type == null ? {} : preparedData.asset_type)[0];
+  const category = typeof preparedData.category === 'string'
+    ? preparedData.category
+    : Object.keys(preparedData.category == null ? {} : preparedData.category)[0];
+  preparedData.asset_type = assetTypeMap[assetType] !== undefined
+    ? assetTypeMap[assetType]
+    : assetType;
+  preparedData.category = category !== undefined ? category : preparedData.category;
 
-  if (preparedData.category=== 'Intellectual Property') delete detailsObj.description;
-
-  // add to array if not in array in the details object
+  // Candid options are represented as [] or [value]. Also tolerate null,
+  // undefined, and already-unwrapped values so callers can use this safely.
   for (const option of detailsOptions) {
-    // extract the value from the array
-    detailsObj[option] = detailsObj[option].length > 0 ? detailsObj[option][0] : '';
+    const value = detailsObj[option];
+    detailsObj[option] = Array.isArray(value)
+      ? (value[0] == null ? '' : value[0])
+      : (value == null ? '' : value);
   }
 
   return preparedData;
