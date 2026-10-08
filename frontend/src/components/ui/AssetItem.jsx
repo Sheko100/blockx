@@ -17,7 +17,7 @@ export default function AssetItem({asset}) {
 	    >
 	      <div className="mb-4 md:mb-0">
 	        <h3 className="font-medium">{asset.details.name}</h3>
-	        <p className="text-sm text-gray-300">{asset.category} • {getStringDate(asset.created_at)}</p>
+	        <p className="text-sm text-gray-300">{asset.category?.replace(/([A-Z])/g, ' $1').trim()} • {getStringDate(asset.created_at)}</p>
 	      </div>
 	      
 	      <div className="flex items-center space-x-4">
@@ -48,7 +48,7 @@ export default function AssetItem({asset}) {
 
 	      		const capitalLabel = label.charAt(0).toUpperCase() + label.substring(1);
 		      	return (
-		      		<p className="p-1 text-gray-300 text-sm">
+			      		<p key={label} className="p-1 text-gray-300 text-sm">
 		      			<strong>{capitalLabel}:</strong>
 		      			<span className="pl-3" >{asset.details[label]}</span>
 		      		</p>
