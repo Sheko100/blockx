@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { useIIAuth } from './context/InternetIdentityContext';
+import { useIIAuth } from '../context/InternetIdentityContext';
 
 // ProtectedRoute component to protect routes that require authentication
 // It checks if the user is authenticated and redirects to login if not

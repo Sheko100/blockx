@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { useIIAuth } from './context/InternetIdentityContext';
+import { useIIAuth } from '../context/InternetIdentityContext';
 
 const GuestRoute = ({ children }) => {
   const { isAuthenticated, loading } = useIIAuth();
