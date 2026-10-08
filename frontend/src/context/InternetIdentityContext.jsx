@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react';
-import { client, doSignIn } from '../../controller/auth';
+import { client, doSignIn } from '../controller/auth';
 
 const InternetIdentityContext = createContext();
 
