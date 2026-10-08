@@ -15,34 +15,17 @@ const DashboardPage = () => {
   const [ assetsCount, setAssetsCount ] = useState(0);
   const [ registeredAssets, setRegisteredAssets ] = useState([]);
   const navigate = useNavigate();
-
-  // Mock data - replace with actual API calls
-  const registrations = [
-    {
-      id: 1,
-      title: "Website Design",
-      type: "Digital Art",
-      date: "2023-06-15",
-      status: "Verified",
-      hash: "0x4a3b...8c2d"
-    },
-    {
-      id: 2,
-      title: "Ebook - Crypto Guide",
-      type: "Document",
-      date: "2023-06-10",
-      status: "Pending",
-      hash: "0x9f2e...1b4a"
-    }
-  ];
+  
+  const { identity } = useIIAuth();
 
   useEffect(() => {
 
     async function getAssetsList() {
+      if (!identity) return;
       let userAssets = [];
 
       try {
-        userAssets = await getUserAssets();
+        userAssets = await getUserAssets(identity);
       } catch (error) {
         console.error('Error during getting user assets:', error);
         toast.error('Failed to load assets. Please, refresh the page');
@@ -54,7 +37,7 @@ const DashboardPage = () => {
     }
 
     getAssetsList();
-  }, []);
+  }, [identity]);
 
 
   return (
@@ -223,8 +206,8 @@ const DashboardPage = () => {
           </div>
 
           <div className="divide-y divide-white/10">
-            {registeredAssets.map((asset, i) => (
-              <AssetItem asset={asset}/>
+            {registeredAssets.map((asset) => (
+              <AssetItem key={asset.hash} asset={asset}/>
             ))}
           </div> 
         </motion.div>
@@ -238,7 +221,7 @@ const DashboardPage = () => {
         className="bg-white/5 backdrop-blur-md py-6 border-t border-white/10 text-center text-sm text-gray-400 relative z-10"
       >
         <div className="container mx-auto px-4">
-          © 2025 Verisys. All rights reserved.
+          © 2026 Verisys. All rights reserved.
         </div>
       </motion.footer>
     </div>

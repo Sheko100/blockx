@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { processFile, getStringDate } from '../utils';
-import { registerAsset, getAsset } from '../controller/controller.js';
+import { registerAsset } from '../controller/controller.js';
 import { useIIAuth } from './context/InternetIdentityContext';
 import Header from './Header';
 import FileUpload from './ui/FileUpload';
@@ -45,7 +45,7 @@ const RegistrationPage = () => {
   const [mountedSection, setMountedSection] = useState('asset_type');
   const [assetHash, setAssetHash] = useState(null);
 
-  const { principal, login, logout, loading, isAuthenticated } = useIIAuth();
+  const { identity, principal, login, logout, loading, isAuthenticated } = useIIAuth();
 
   // Form state matching Rust structs
   const [formData, setFormData] = useState({
@@ -365,9 +365,10 @@ const RegistrationPage = () => {
   const submitAsset = async () => {
 
     // if not authenticated user should redirect to internet identity page to login
-    if (isAuthenticated !== true) {
+    let requestIdentity = identity;
+    if (!isAuthenticated() || !requestIdentity) {
       try {
-        const id = await login();
+        requestIdentity = await login();
       } catch(error) {
         console.error('Error while logging in;', error);
         return;
@@ -375,7 +376,7 @@ const RegistrationPage = () => {
     }
 
     try {
-      const hash = await registerAsset(formData);
+      const hash = await registerAsset(formData, requestIdentity);
       setAssetHash(hash);
       nextStep();
     } catch (error) {
@@ -827,7 +828,7 @@ const RegistrationPage = () => {
       </div>
 
       {/* Glass Morphic Header */}
-      <Header showNav={false} showBtn={isAuthenticated} showAuth={isAuthenticated === false}/>
+      <Header showNav={false} showBtn={isAuthenticated()} showAuth={isAuthenticated() === false}/>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12 relative z-10">
