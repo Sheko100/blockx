@@ -3,11 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { processFile, getStringDate } from '../utils';
 import { registerAsset } from '../controller/controller.js';
-import { useIIAuth } from './context/InternetIdentityContext';
-import Header from './Header';
-import FileUpload from './ui/FileUpload';
+import { useIIAuth } from '../context/InternetIdentityContext';
+import Header from '../components/Header';
+import FileUpload from '../components/ui/FileUpload';
 import { toast } from 'react-hot-toast';
-import DownloadCertBtn from './ui/DownloadCertBtn'; 
+import DownloadCertBtn from '../components/ui/DownloadCertBtn';
 import { 
   IconUpload, 
   IconHome, 
@@ -45,7 +45,7 @@ const RegistrationPage = () => {
   const [mountedSection, setMountedSection] = useState('asset_type');
   const [assetHash, setAssetHash] = useState(null);
 
-  const { identity, login, logout, loading, isAuthenticated } = useIIAuth();
+  const { identity, principal, login, logout, loading, isAuthenticated } = useIIAuth();
 
   // Form state matching Rust structs
   const [formData, setFormData] = useState({

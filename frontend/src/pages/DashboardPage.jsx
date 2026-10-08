@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-//import { useAuth } from './context/AuthContext';
-import { useIIAuth } from './context/InternetIdentityContext';
+import { useIIAuth } from '../context/InternetIdentityContext';
 import { IconFileText, IconClock, IconShieldCheck, IconArrowRight, IconX } from '@tabler/icons-react';
-import Header from './Header';
+import Header from '../components/Header';
 import { getUserAssets } from '../controller/controller.js';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { getStringDate } from '../utils';
-import AssetItem from './ui/AssetItem';
+import AssetItem from '../components/ui/AssetItem';
 
 const DashboardPage = () => {
-  //const { user, logout } = useAuth();
   const [ assetsCount, setAssetsCount ] = useState(0);
   const [ registeredAssets, setRegisteredAssets ] = useState([]);
   const navigate = useNavigate();

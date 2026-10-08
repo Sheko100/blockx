@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { IconFileUpload, IconTopologyStarRing3, IconShieldLock, IconCertificate, IconArrowRight, IconBrandTwitter, IconBrandDiscord, IconBrandTelegram, IconBrandMedium, IconX, IconMessage, IconSend, IconArrowBack } from '@tabler/icons-react';
 import { motion, AnimatePresence } from 'framer-motion'; 
-import Header from './Header';
+import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
 
 const LandingPage = ({ connectWallet }) => {
