@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useState } from 'react';
 import { IconSquareAsterisk } from '@tabler/icons-react';
-import { useIIAuth } from './context/InternetIdentityContext';
+import { useIIAuth } from '../context/InternetIdentityContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 
@@ -22,7 +22,7 @@ const Header = ({showNav=true, showBtn=true, showAuth=false}) => {
   }
 
   const authBtn = () =>{
-    return isAuthenticated ? (
+    return isAuthenticated() ? (
         <div className="flex items-center space-x-4">
           <span className="text-sm bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
             ID: {principal?.slice(0, 8)}...{principal?.slice(-4)}
@@ -128,10 +128,10 @@ const Header = ({showNav=true, showBtn=true, showAuth=false}) => {
 	          className="relative bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-lg font-medium transition-all overflow-hidden group"
 	          whileHover={{ scale: 1.05 }}
 	          whileTap={{ scale: 0.95 }}
-	          onClick={() => isAuthenticated ? navigate("/dashboard") : navigate("/login")}
+	          onClick={() => isAuthenticated() ? navigate("/dashboard") : navigate("/login")}
 	        >
 	          <span className="relative z-10">
-	            {isAuthenticated ? "Dashboard" : "Connect"}
+	            {isAuthenticated() ? "Dashboard" : "Connect"}
 	          </span>
 	          <motion.span className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity" />
 	          <motion.span
