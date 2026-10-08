@@ -1,10 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from './Header';
+import Header from '../components/Header';
 import { verifyAsset } from '../controller/controller';
 import { Listbox } from "@headlessui/react";
-import { toast } from 'react-hot-toast';
 import { 
   IconSearch, 
   IconShieldCheck, 
@@ -43,18 +42,14 @@ const VerifyProperty = () => {
     setShowResult(false);
     try {
        isVerified = await verifyAsset(assetHash, selected.value);
-        setAssetCategory(selected.value === 'IntellectualProperty' ||
-                         selected.value === 'DigitalAsset' ? 
-                         'Non-Physical Asset' : 'Physical Asset');
         setShowResult(true);
         setIsValid(isVerified);
     } catch (error) {
-        toast.error('Failed to verify the asset')
+        toast.error()
         console.error("Couldn't verify the asset:", error);
-    } finally {
-      setIsVerifying(false);
     }
 
+    setIsVerifying(false);
   };
 
   return (
@@ -226,7 +221,9 @@ const VerifyProperty = () => {
                     <IconShieldCheck className="text-blue-400 mr-2" />
                     Verification Results
                     <span className="ml-2 text-sm font-normal bg-blue-700/30 px-2 py-1 rounded-md">
-                      { assetCategory }
+                      {assetCategory === 'DigitalAsset'
+                      && assetCategory === 'IntellectualProperty'
+                       ? 'Non-Physical Asset' : 'Physical Asset'}
                     </span>
                   </h3>
                 </div>

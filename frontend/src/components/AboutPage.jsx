@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { IconShield, IconUsers, IconGlobe, IconRocket } from '@tabler/icons-react';
-import Header from './Header';
+import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
 
 const About = () => {
