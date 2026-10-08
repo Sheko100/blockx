@@ -11,7 +11,7 @@ import { doSignIn } from '../controller/auth';
 const LoginPage = ({ onLoginSuccess, redirectAction }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [showRedirectMessage, setShowRedirectMessage] = useState(!!redirectAction);
-  const { principal, login, logout, loading } = useIIAuth();
+  const { login, logout, loading } = useIIAuth();
   
   const navigate = useNavigate();
 

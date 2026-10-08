@@ -45,7 +45,7 @@ const RegistrationPage = () => {
   const [mountedSection, setMountedSection] = useState('asset_type');
   const [assetHash, setAssetHash] = useState(null);
 
-  const { identity, principal, login, logout, loading, isAuthenticated } = useIIAuth();
+  const { identity, login, logout, loading, isAuthenticated } = useIIAuth();
 
   // Form state matching Rust structs
   const [formData, setFormData] = useState({
