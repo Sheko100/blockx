@@ -2,33 +2,36 @@ import React, { useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { IconShieldLock, IconX, IconCloudNetwork } from '@tabler/icons-react';
 import { motion } from "framer-motion"; 
-import { useIIAuth } from './context/InternetIdentityContext';
+import { useIIAuth } from '../context/InternetIdentityContext';
 import { useNavigate } from 'react-router-dom';
-import Header from './Header';
-import { toast } from 'react-hot-toast'
+import Header from '../components/Header';
+import { toast } from 'react-hot-toast';
+import { doSignIn } from '../controller/auth';
 
 const LoginPage = ({ onLoginSuccess, redirectAction }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [showRedirectMessage, setShowRedirectMessage] = useState(!!redirectAction);
-  const { principal,login, logout, loading } = useIIAuth();
+  const { principal, login, logout, loading } = useIIAuth();
+  
   const navigate = useNavigate();
 
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
       const id = await login();
+      //const id = await doSignIn();
       //setAuthInfo(authInfo);
       toast.success("Logged in successfully");
+
+      navigate('/dashboard');
+ 
     } catch (error) {
       console.error('error while logging in', error);
       toast.error('Failed to log in');
-      return;
     } finally {
       setIsConnecting(false);
     }
 
-    navigate('/dashboard');
-;
   };
 
   return (
