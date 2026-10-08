@@ -1,9 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useIIAuth } from './context/InternetIdentityContext';
 
-// ProtectedRoute component to protect routes that require authentication
-// It checks if the user is authenticated and redirects to login if not
-const ProtectedRoute = ({ children }) => {
+const GuestRoute = ({ children }) => {
   const { isAuthenticated, loading } = useIIAuth();
 
   if (loading) {
@@ -14,11 +12,11 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
+  if (isAuthenticated()) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
 };
 
-export default ProtectedRoute;
+export default GuestRoute;
