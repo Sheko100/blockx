@@ -1,49 +1,34 @@
 # Makefile for ICP project with Rust backend + React frontend
 
-BACKEND_CANISTER := blockx_backend
-FRONTEND_CANISTER := blockx_frontend
-PACKAGE_NAME := blockx
-WASM_PATH := target/wasm32-unknown-unknown/release/$(PACKAGE_NAME).wasm
-DID_PATH := backend/src/blockx_rust.did
-DECLARATIONS_PATH := declarations
+BACKEND_CANISTER := backend
+FRONTEND_CANISTER := frontend
 
 
-all: dev deploy-all candid declarations
+all: network-start deploy-all
 
-fresh: dev-fresh candid deploy-all declarations
+dev: network-start deploy-back front-dev
 
-dev:
-	dfx start --background || (dfx stop && dfx start --background)
+network-start:
+	icp network start -d || (icp network stop && icp network start -d)
 
-dev-fresh:
-	dfx start --background --clean || (dfx stop && dfx start --background --clean)
-
-stop-dev:
-	dfx stop
+stop:
+	icp network stop
 
 deploy-all:
-	dfx deploy || dfx stop
+	icp deploy
+
+front-dev:
+	cd frontend && npm run dev
 
 deploy-front:
-	dfx deploy ${FRONTEND_CANISTER}
+	icp deploy ${FRONTEND_CANISTER}
 
 deploy-back:
-	dfx deploy ${BACKEND_CANISTER}
+	icp deploy ${BACKEND_CANISTER}
 
-candid:
-	candid-extractor ${WASM_PATH} > ${DID_PATH}
-
-declarations: delete-declarations
-	dfx generate ${BACKEND_CANISTER}
-
-delete-declarations:
-	rm -rf declarations
+build-front:
+	icp build ${FRONTEND_CANISTER}
 
 clean:
-	cargo clean -r
-	dfx stop
-	rm -rf .dfx
-	rm -rf declarartions
-
-clean-cargo-all:
-	cargo clean
+	rm -rf ./.icp
+	rm -rf ./targe

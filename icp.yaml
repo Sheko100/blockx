@@ -1,0 +1,28 @@
+canisters:
+  - name: backend
+    recipe:
+      type: "@dfinity/rust@v3.0.0"
+      configuration:
+        package: blockx
+        candid: "backend/src/blockx_rust.did"
+        build:
+          steps:
+            - type: script
+              commands:
+                - cargo build --target wasm32-unknown-unknown --release -p blockx
+                - candid-extractor target/wasm32-unknown-unknown/release/blockx.wasm > backend/src/blockx_rust.did
+  - name: frontend
+    recipe:
+      type: "@dfinity/asset-canister@v2.2.1"
+      configuration:
+        dir: public
+        build:
+          - cd frontend && npm i --include=dev && npm run build
+          - rm -r ./public > /dev/null 2>&1
+          - cp -r ./frontend/dist ./public
+          - cp -r ./frontend/.well-known ./public/.well-known
+networks:
+  - name: local
+    mode: managed
+    ii: true
+              
