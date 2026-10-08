@@ -43,12 +43,20 @@ export const InternetIdentityProvider = ({ children }) => {
 
   const login = async () => {
     try {
+      /*const identity = await authClient.signIn({
+        // maxTimeToLive: BigInt(8) * BigInt(3_600_000_000_000),  8 hours
+       // maxTimeToLive: BigInt(9) * BigInt(3_600_000_000_000), // 8 hours in nanoseconds
+        //maxTimeToIdle: BigInt(9) * BigInt(3_600_000_000_000),
+        //returnTo: 'http://localhost:5173/',
+      });*/
       
       const identity = await doSignIn();
 
       setIdentity(identity);
       setPrincipal(identity.getPrincipal().toText());
       setIsAuth(true);
+
+      // could be moved to another separated file
 
       return identity;
     } catch (error) {
