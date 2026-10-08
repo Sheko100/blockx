@@ -68,12 +68,12 @@ function isTextFile(file) {
 }
 
 export function arrayIt(value) {
-  if (Array.isArray(value))
-    return value;
-  else if (value !== '')
-    return [value];
+  if (Array.isArray(value)) return value;
 
-  return [];
+  /*else if (value !== '')
+    return [value];*/
+
+  return [value];
 }
 
 export function objectIt(value, objValue=null) {
