@@ -47,11 +47,8 @@ type ServiceError = variant {
   MissingProof : text;
   InternalError : text;
 };
-type User = record { username : text; password : text; email : text };
 service : {
-  add_user : (text, text, text) -> (nat);
   get_assets : (vec nat) -> (vec Asset) query;
-  get_user : (nat) -> (User) query;
   get_user_assets : () -> (vec Asset) query;
   register_asset : (AssetUserInput) -> (Result);
   // 
