@@ -1,114 +1,147 @@
-# Verisys
+# Verisys (former blockx)
 
-Verisys is an Internet Computer application for registering and verifying ownership records for physical and digital assets. Asset records are stored by the backend canister, and users can verify a record using its hash and category.
+**Verisys** is a dApp for registering your ownership of all assets whether they are physical assets in the real world or non-physical assets like your ideas or anything digital on the **Internet Computer**.
 
-## Requirements
+**The Problem**:
 
-- ICP CLI (`icp`)
-- Node.js with npm
-- Rust with the `wasm32-unknown-unknown` target
+We all have some important things to us and would like to have some sort of approval that they belong to us and to have the option of preventing others from using it or cliams their ownership of it
 
-## Get Started
+**The Solution**:
 
-**Run the local development**
+in Verisys, you can have that approval in a decenterlaized environment that provides transparency and prevnting the manipulation of your registerd assets
 
-This will start local icp network, deploying the backend canister, and run development server through Vite
+You will get a **document** that approves your assets ownership, anyone can **verify** that your assets are registerd, and nobody can register your asset ever again in the future.
 
-```sh
-make dev
-```
+## Get Starting
 
-**Run in local production**
+### Build and deploy
 
-In production, frontend is served on http://frontend.local.localhost:8000/
+run `Make`
 
-```sh
-make
-```
+### Build with fresh data
 
-Install frontend dependencies (first setup, or after dependency changes):
+run `Make fresh`
 
-```sh
-cd frontend
-npm ci
-```
+### Running the dApp
 
-Run Vite in a separate terminal:
+After running any of the previus commnds, you will see at the end of the output links like in the following image:
 
-```sh
-cd frontend
-npm run dev
-```
+![canisters-urls](assets/canisters-urls.png)
 
-Open the local URL printed by Vite. The Vite configuration reads the local ICP network and backend canister information, so start the network and deploy the backend before launching Vite.
+**Open the link associated with `blockx_frontend` to start using the dApp**
 
-If backend code changes, redeploy the backend:
-
-```sh
-make deploy-back
-```
-
-Stop the local network that is running in the background  when finished:s
-
-```sh
-make stop
-```
-
-## Production deployment
-
-Build and deploy all configured canisters:
-
-```sh
-make deploy-all
-```
-
-This deploys the backend and frontend. To publish a frontend change on its own, rebuild and redeploy the frontend canister:
-
-```sh
-make deploy-front
-```
-
-To publish a backend change on its own:
-
-```sh
-make deploy-back
-```
-
-## Other useful commands
-
-Build the frontend canister without deploying it:
-
-```sh
-make build-front
-```
-
-Run the frontend linter:
-
-```sh
-cd frontend
-npm run lint
-```
+all other links are candid interfaces.
 
 ## Features
 
-- Register physical and non-physical assets
-- Authenticate with Internet Identity
-- View a user's registered assets
-- Verify a registered asset using its hash and category
-- Download an asset registration certificate
+- Register physical and non physical assets
+- Secure and easy login with **Internet Identity**
+- Download your assets ownership approval certificates
+- Secure files upload as they are not saved
+- User-friendly UI/UX
 
-## Project layout
+## Directory Structure
 
-See [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) for the full project directory structure.
+### Root
 
-```text
-backend/       Rust backend canister
-frontend/      React and Vite frontend
-public/        Frontend assets prepared for canister deployment
-icp.yaml       ICP canister and build configuration
-Makefile       Local network, build, and deployment commands
+```
+├── backend
+├── Cargo.lock
+├── Cargo.toml
+├── declarations
+├── dfx.json
+├── frontend
+├── Makefile
+├── public
+├── README.md
+└── rust-toolchain.toml
 ```
 
-## Architecture
+### Backend
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the architecture overview and diagram.
+```
+├── Cargo.toml
+└── src
+    ├── asset.rs
+    ├── blockx_rust.did
+    ├── err.rs
+    ├── hash.rs
+    ├── lib.rs
+    ├── store.rs
+    └── utils.rs
+```
+
+### Frontend
+
+```
+├── README.md
+├── backend_api
+│   ├── blockx_rust.ts
+│   └── declarations
+│       ├── blockx_rust.did.d.ts
+│       └── blockx_rust.did.js
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── react-router.config.ts
+├── src
+│   ├── App.css
+│   ├── App.jsx
+│   ├── components
+│   │   ├── CertificatePDF.jsx
+│   │   ├── Header.jsx
+│   │   ├── RegistrationCard.jsx
+│   │   ├── RegistrationPage.css
+│   │   └── ui
+│   │       ├── AssetItem.jsx
+│   │       ├── DownloadCertBtn.jsx
+│   │       ├── FileUpload.jsx
+│   │       └── WalletButton.jsx
+│   ├── context
+│   │   ├── AuthContext.jsx
+│   │   └── InternetIdentityContext.jsx
+│   ├── controller
+│   │   ├── agent.js
+│   │   ├── auth.js
+│   │   └── controller.js
+│   ├── index.css
+│   ├── main.jsx
+│   ├── pages
+│   │   ├── AboutPage.jsx
+│   │   ├── DashboardPage.jsx
+│   │   ├── LandingPage.jsx
+│   │   ├── LoginPage.jsx
+│   │   ├── RegistrationPage.jsx
+│   │   └── VerifyPropertyPage.jsx
+│   ├── routes
+│   │   ├── AppRoutes.jsx
+│   │   ├── GuestRoute.jsx
+│   │   └── ProtectedRoute.jsx
+│   ├── styles
+│   │   ├── globals.css
+│   │   └── registration.css
+│   └── utils.js
+├── tailwind.config.js
+└── vite.config.js
+```
+
+## Roadmap
+
+- The ability to transfer asset ownership
+- Integrating more authentication methods (other wallets)
+- Integrating NLP technology to check assets simalarities
+
+## Contributing
+
+1. Fork the repo
+2. Create a new branch
+3. Add, commit and push your updates
+4. Open a pull request
+
+**Please, follow the following rules while contributing**:
+
+- Use small, meaningful commits: feat: add register_asset, fix: overflow on id
+
+- Open issues with reproducing steps and environment
