@@ -1,195 +1,114 @@
-# Verisys (former blockx)
+# Verisys
 
-**Verisys** is a dApp for registering your ownership of all assets whether they are physical assets in the real world or non-physical assets like your ideas or anything digital on the **Internet Computer**.
+Verisys is an Internet Computer application for registering and verifying ownership records for physical and digital assets. Asset records are stored by the backend canister, and users can verify a record using its hash and category.
 
-**The Problem**:
+## Requirements
 
-We all have some important things to us and would like to have some sort of approval that they belong to us and to have the option of preventing others from using it or cliams their ownership of it
+- ICP CLI (`icp`)
+- Node.js with npm
+- Rust with the `wasm32-unknown-unknown` target
 
-**The Solution**:
+## Get Started
 
-in Verisys, you can have that approval in a decenterlaized environment that provides transparency and prevnting the manipulation of your registerd assets
+**Run the local development**
 
-You will get a **document** that approves your assets ownership, anyone can **verify** that your assets are registerd, and nobody can register your asset ever again in the future.
+This will start local icp network, deploying the backend canister, and run development server through Vite
 
-## Get Starting
+```sh
+make dev
+```
 
-### Build and deploy
+**Run in local production**
 
-run `Make`
+In production, frontend is served on http://frontend.local.localhost:8000/
 
-### Build with fresh data
+```sh
+make
+```
 
-run `Make fresh`
+Install frontend dependencies (first setup, or after dependency changes):
 
-### Running the dApp
+```sh
+cd frontend
+npm ci
+```
 
-After running any of the previus commnds, you will see at the end of the output links like in the following image:
+Run Vite in a separate terminal:
 
-![canisters-urls](docs/canisters-urls.png)
+```sh
+cd frontend
+npm run dev
+```
 
-**Open the link associated with `blockx_frontend` to start using the dApp**
+Open the local URL printed by Vite. The Vite configuration reads the local ICP network and backend canister information, so start the network and deploy the backend before launching Vite.
 
-all other links are candid interfaces.
+If backend code changes, redeploy the backend:
+
+```sh
+make deploy-back
+```
+
+Stop the local network that is running in the background  when finished:s
+
+```sh
+make stop
+```
+
+## Production deployment
+
+Build and deploy all configured canisters:
+
+```sh
+make deploy-all
+```
+
+This deploys the backend and frontend. To publish a frontend change on its own, rebuild and redeploy the frontend canister:
+
+```sh
+make deploy-front
+```
+
+To publish a backend change on its own:
+
+```sh
+make deploy-back
+```
+
+## Other useful commands
+
+Build the frontend canister without deploying it:
+
+```sh
+make build-front
+```
+
+Run the frontend linter:
+
+```sh
+cd frontend
+npm run lint
+```
 
 ## Features
-- Register physical and non physical assets
-- Secure and easy login with **Internet Identity**
-- Download your assets ownership approval certificates
-- Secure files upload as they are not saved
-- User-friendly UI/UX
+
+- Register physical and non-physical assets
+- Authenticate with Internet Identity
+- View a user's registered assets
+- Verify a registered asset using its hash and category
+- Download an asset registration certificate
+
+## Project layout
+
+See [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) for the full project directory structure.
+
+```text
+backend/       Rust backend canister
+frontend/      React and Vite frontend
+public/        Frontend assets prepared for canister deployment
+icp.yaml       ICP canister and build configuration
+Makefile       Local network, build, and deployment commands
+```
 
 ## Architecture
 
-The project is following the **MVC** software architectural pattern.
-
-*Model*: Rust cansiter exposes its **API** through the controller
-
-*View*: React components composing the **UI/UX**, and talks with the controller
-
-*Controller*: The generated **declarations** `(@dfinity/agent)` and the extra layer in the `frontend/src/controller/controller.js` file that handles the data processing between the *model* and the *view*
-
-
-![architecture-flowchart](docs/architecture-flowchart.png)
-
-## Directory Structure
-
-### Root
-
-```
-├── backend
-├── Cargo.lock
-├── Cargo.toml
-├── declarations
-├── dfx.json
-├── frontend
-├── Makefile
-├── public
-├── README.md
-└── rust-toolchain.toml
-```
-
-### Backend
-
-```
-├── Cargo.toml
-└── src
-    ├── asset.rs
-    ├── blockx_rust.did
-    ├── err.rs
-    ├── hash.rs
-    ├── lib.rs
-    ├── store.rs
-    └── utils.rs
-
-```
-### Frontend
-
-```
-├── dist
-│   ├── android-chrome-192x192.png
-│   ├── android-chrome-512x512.png
-│   ├── apple-touch-icon.png
-│   ├── assets
-│   │   ├── index-B78hRfqR.js
-│   │   ├── index-BfqK5uaz.css
-│   │   ├── index-D8b4DHJx.css
-│   │   └── index-DK-xQhXp.js
-│   ├── favicon-16x16.png
-│   ├── favicon-32x32.png
-│   ├── favicon.ico
-│   ├── index.html
-│   ├── logo.png
-│   ├── manifest.json
-│   └── robots.txt
-├── eslint.config.js
-├── index.html
-├── package.json
-├── package-lock.json
-├── postcss.config.js
-├── public
-│   ├── android-chrome-192x192.png
-│   ├── android-chrome-512x512.png
-│   ├── apple-touch-icon.png
-│   ├── assets
-│   │   ├── index-D8b4DHJx.css
-│   │   └── index-DK-xQhXp.js
-│   ├── favicon-16x16.png
-│   ├── favicon-32x32.png
-│   ├── favicon.ico
-│   ├── index.html
-│   ├── logo.png
-│   ├── manifest.json
-│   └── robots.txt
-├── react-router.config.ts
-├── README.md
-├── src
-│   ├── App.css
-│   ├── App.jsx
-│   ├── components
-│   │   ├── About.jsx
-│   │   ├── CertificatePDF.jsx
-│   │   ├── context
-│   │   │   ├── AuthContext.jsx
-│   │   │   └── InternetIdentityContext.jsx
-│   │   ├── DashboardPage.jsx
-│   │   ├── Header.jsx
-│   │   ├── LandingPage.jsx
-│   │   ├── LoginPage.jsx
-│   │   ├── ProtectedRoute.jsx
-│   │   ├── RegistrationCard.jsx
-│   │   ├── RegistrationPage.css
-│   │   ├── RegistrationPage.jsx
-│   │   ├── ui
-│   │   │   ├── AssetItem.jsx
-│   │   │   ├── DownloadCertBtn.jsx
-│   │   │   ├── FileUpload.jsx
-│   │   │   └── WalletButton.jsx
-│   │   └── VerifyProperty.jsx
-│   ├── controller
-│   │   └── controller.js
-│   ├── index.css
-│   ├── index.js
-│   ├── logo.svg
-│   ├── main.jsx
-│   ├── routes.jsx
-│   ├── styles
-│   │   ├── globals.css
-│   │   └── registration.css
-│   └── utils.js
-├── tailwind.config.js
-└── vite.config.js
-```
-
-## Roadmap
-
-- The ability to transfer asset ownership
-- Integrating more authentication methods (other wallets)
-- Integrating NLP technology to check assets simalarities
-
-## Contributing
-
-1. Fork the repo
-2. Create a new branch
-3. Add, commit and push your updates
-4. Open a pull request
-
-**Please, follow the following rules while contributing**:
-- Use small, meaningful commits: feat: add register_asset, fix: overflow on id
-
-- Open issues with reproducing steps and environment
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the architecture overview and diagram.
