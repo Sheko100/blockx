@@ -8,4 +8,4 @@ The project follows the **Model-View-Controller (MVC)** pattern:
 
 Internet Identity provides the caller identity used by the backend to associate asset registrations with users. Public verification is handled by a backend query.
 
-![Architecture flowchart](assets/architecture-flowchart.png)
+![Architecture flowchart](images/architecture-flowchart.png)
