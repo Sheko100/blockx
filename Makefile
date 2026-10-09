@@ -6,6 +6,10 @@ FRONTEND_CANISTER := frontend
 
 all: network-start deploy-all
 
+install:
+	cd frontend && npm install
+	cargo build
+
 dev: network-start deploy-back front-dev
 
 network-start:
