@@ -1,137 +1,60 @@
-# Verisys (former blockx)
+# Verisys
 
-**Verisys** is a dApp for registering your ownership of all assets whether they are physical assets in the real world or non-physical assets like your ideas or anything digital on the **Internet Computer**.
+**Verisys** is an [Internet Computer](https://internetcomputer.org/) dApp for registering and verifying ownership of assets whether they are physical assets or non-physical assets like ideas or anything digital.
 
-**The Problem**:
+## Requirements
 
-We all have some important things to us and would like to have some sort of approval that they belong to us and to have the option of preventing others from using it or cliams their ownership of it
+- [Rust](https://rust-lang.org/tools/install/)
+- [Node.js](https://nodejs.org/en/download)
+- [ICP CLI]() with *rust* toolchain
 
-**The Solution**:
+## Get Started
 
-in Verisys, you can have that approval in a decenterlaized environment that provides transparency and prevnting the manipulation of your registerd assets
+##### Local Development
 
-You will get a **document** that approves your assets ownership, anyone can **verify** that your assets are registerd, and nobody can register your asset ever again in the future.
+**In first setup, install all dependencies**
 
-## Get Starting
+```sh
+make install 
+```
 
-### Build and deploy
+**Run a local development server**
 
-run `Make`
+This will start local icp network, deploying the backend canister, and run development server through Vite
 
-### Build with fresh data
+```sh
+make dev
+```
 
-run `Make fresh`
+**Run a local production server**
 
-### Running the dApp
+You can test the whole project deployed as ICP canisters by running:
 
-After running any of the previus commnds, you will see at the end of the output links like in the following image:
+```sh
+make
+```
 
-![canisters-urls](assets/canisters-urls.png)
-
-**Open the link associated with `blockx_frontend` to start using the dApp**
-
-all other links are candid interfaces.
+In production, frontend is served on [http://frontend.local.localhost:8000/](http://frontend.local.localhost:8000/)
 
 ## Features
 
-- Register physical and non physical assets
-- Secure and easy login with **Internet Identity**
-- Download your assets ownership approval certificates
-- Secure files upload as they are not saved
-- User-friendly UI/UX
+- Register physical and non-physical assets
+- Authenticate with Internet Identity
+- View a user's registered assets
+- Verify a registered asset using its hash
+- Download an asset registration certificate
 
-## Directory Structure
+## Project layout
 
-### Root
+See [DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md) for the full project directory structure.
 
+```text
+backend/       Rust backend canister
+frontend/      React and Vite frontend
+public/        Frontend assets prepared for canister deployment
+icp.yaml       ICP canister and build configuration
+Makefile       Local network, build, and deployment commands
 ```
-├── backend
-├── Cargo.lock
-├── Cargo.toml
-├── declarations
-├── dfx.json
-├── frontend
-├── Makefile
-├── public
-├── README.md
-└── rust-toolchain.toml
-```
-
-### Backend
-
-```
-├── Cargo.toml
-└── src
-    ├── asset.rs
-    ├── blockx_rust.did
-    ├── err.rs
-    ├── hash.rs
-    ├── lib.rs
-    ├── store.rs
-    └── utils.rs
-```
-
-### Frontend
-
-```
-├── README.md
-├── backend_api
-│   ├── blockx_rust.ts
-│   └── declarations
-│       ├── blockx_rust.did.d.ts
-│       └── blockx_rust.did.js
-├── eslint.config.js
-├── index.html
-├── package-lock.json
-├── package.json
-├── postcss.config.js
-├── react-router.config.ts
-├── src
-│   ├── App.css
-│   ├── App.jsx
-│   ├── components
-│   │   ├── CertificatePDF.jsx
-│   │   ├── Header.jsx
-│   │   ├── RegistrationCard.jsx
-│   │   ├── RegistrationPage.css
-│   │   └── ui
-│   │       ├── AssetItem.jsx
-│   │       ├── DownloadCertBtn.jsx
-│   │       ├── FileUpload.jsx
-│   │       └── WalletButton.jsx
-│   ├── context
-│   │   ├── AuthContext.jsx
-│   │   └── InternetIdentityContext.jsx
-│   ├── controller
-│   │   ├── agent.js
-│   │   ├── auth.js
-│   │   └── controller.js
-│   ├── index.css
-│   ├── main.jsx
-│   ├── pages
-│   │   ├── AboutPage.jsx
-│   │   ├── DashboardPage.jsx
-│   │   ├── LandingPage.jsx
-│   │   ├── LoginPage.jsx
-│   │   ├── RegistrationPage.jsx
-│   │   └── VerifyPropertyPage.jsx
-│   ├── routes
-│   │   ├── AppRoutes.jsx
-│   │   ├── GuestRoute.jsx
-│   │   └── ProtectedRoute.jsx
-│   ├── styles
-│   │   ├── globals.css
-│   │   └── registration.css
-│   └── utils.js
-├── tailwind.config.js
-└── vite.config.js
-```
-
-## Roadmap
-
-- The ability to transfer asset ownership
-- Integrating more authentication methods (other wallets)
-- Integrating NLP technology to check assets simalarities
 
 ## Contributing
 
@@ -145,3 +68,29 @@ all other links are candid interfaces.
 - Use small, meaningful commits: feat: add register_asset, fix: overflow on id
 
 - Open issues with reproducing steps and environment
+
+## Roadmap
+
+- The ability to transfer asset ownership
+
+- Integrating more authentication methods (other wallets)
+
+- Integrating NLP technology to check assets simalarities
+
+## Architecture
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the architecture overview and diagram.
+
+## Useful Links
+
+- https://js.icp.build/ - Docs for ICP JavaScript frontend libraries
+
+- https://docs.internetcomputer.org/languages/rust/ - Docs for using rust as backend
+
+- [Internet Identity](https://docs.internetcomputer.org/guides/authentication/internet-identity/) - Docs for the Internet Identity (current authentication)
+
+- [https://docs.internetcomputer.org/guides/testing/strategies/](https://docs.internetcomputer.org/guides/testing/strategies/) - Docs for testing
+
+- https://docs.internetcomputer.org/developer-tools/ - Docs for some useful tools
+
+- [https://docs.internetcomputer.org/concepts/canisters/](https://docs.internetcomputer.org/concepts/canisters/) - Docs on canisters and how they behave
